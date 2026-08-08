@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="web/client/public/favicon.svg" width="72" height="69" alt="MindIt logo">
+  <img src="docs/logo.png" width="120" height="120" alt="MindIt logo">
 </p>
 
 <h1 align="center">MindIt</h1>
