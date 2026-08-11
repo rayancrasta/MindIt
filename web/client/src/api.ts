@@ -117,6 +117,28 @@ export interface DeploymentNote {
   updated: string;
 }
 
+export interface Diagram {
+  path: string;
+  title: string;
+  content: string;
+  created: string;
+  updated: string;
+}
+
+export interface DiagramTreeNode {
+  name: string;
+  path: string;
+  type: 'folder' | 'page';
+  title?: string;
+  updated?: string;
+  children?: DiagramTreeNode[];
+}
+
+export interface DiagramFolderListing {
+  folders: string[];
+  pages: { path: string; title: string; updated: string }[];
+}
+
 export interface ResumeData {
   pendingFeatures: Feature[];
   pendingStories: Story[];
@@ -272,5 +294,29 @@ export const api = {
     ) => req<DeploymentNote>(`/deployments/${id}${qs({ project })}`, { method: 'PATCH', body: JSON.stringify(patch) }),
     remove: (project: string, id: string) =>
       req<{ message: string }>(`/deployments/${id}${qs({ project })}`, { method: 'DELETE' }),
+  },
+  diagrams: {
+    tree: (project: string, folder?: string) =>
+      req<DiagramFolderListing>(`/projects/${encodeURIComponent(project)}/diagrams/tree${qs({ folder })}`),
+    fullTree: (project: string, folder?: string) =>
+      req<DiagramTreeNode[]>(
+        `/projects/${encodeURIComponent(project)}/diagrams/tree${qs({ folder, recursive: 'true' })}`
+      ),
+    page: {
+      get: (project: string, path: string) =>
+        req<Diagram>(`/projects/${encodeURIComponent(project)}/diagrams/page${qs({ path })}`),
+      create: (project: string, data: { path: string; content?: string; title?: string }) =>
+        req<Diagram>(`/projects/${encodeURIComponent(project)}/diagrams/page`, {
+          method: 'POST',
+          body: JSON.stringify(data),
+        }),
+      update: (project: string, path: string, content: string) =>
+        req<Diagram>(`/projects/${encodeURIComponent(project)}/diagrams/page`, {
+          method: 'PUT',
+          body: JSON.stringify({ path, content }),
+        }),
+      remove: (project: string, path: string) =>
+        req<Diagram>(`/projects/${encodeURIComponent(project)}/diagrams/page${qs({ path })}`, { method: 'DELETE' }),
+    },
   },
 };

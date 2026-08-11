@@ -10,6 +10,7 @@ const NAV = [
   { to: '/board', label: 'Board' },
   { to: '/wiki', label: 'Wiki' },
   { to: '/deployments', label: 'Deployments' },
+  { to: '/diagrams', label: 'Diagrams' },
 ];
 
 export function Layout({ children }: { children: ReactNode }) {

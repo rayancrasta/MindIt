@@ -37,6 +37,11 @@ import { registerListDeploymentNotesTool } from './tools/listDeploymentNotes.js'
 import { registerGetDeploymentNoteTool } from './tools/getDeploymentNote.js';
 import { registerUpdateDeploymentNoteTool } from './tools/updateDeploymentNote.js';
 import { registerDeleteDeploymentNoteTool } from './tools/deleteDeploymentNote.js';
+import { registerCreateDiagramTool } from './tools/createDiagram.js';
+import { registerUpdateDiagramTool } from './tools/updateDiagram.js';
+import { registerReadDiagramTool } from './tools/readDiagram.js';
+import { registerDeleteDiagramTool } from './tools/deleteDiagram.js';
+import { registerListDiagramsTool } from './tools/listDiagrams.js';
 
 const server = new McpServer({ name: 'work-tracker', version: '0.1.0' });
 
@@ -76,6 +81,11 @@ registerListDeploymentNotesTool(server);
 registerGetDeploymentNoteTool(server);
 registerUpdateDeploymentNoteTool(server);
 registerDeleteDeploymentNoteTool(server);
+registerCreateDiagramTool(server);
+registerUpdateDiagramTool(server);
+registerReadDiagramTool(server);
+registerDeleteDiagramTool(server);
+registerListDiagramsTool(server);
 
 async function main() {
   const transport = new StdioServerTransport();

@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '../api';
 import { useProject } from '../context/ProjectContext';
-import { MarkdownBody, MarkdownField } from '../components/Markdown';
+import { MermaidDiagram, MermaidField } from '../components/Mermaid';
 import { Tree } from '../components/Tree';
 
 function decodeSplat(splat: string | undefined): string {
@@ -23,7 +23,7 @@ function encodePath(path: string): string {
     .join('/');
 }
 
-export function Wiki() {
+export function Diagrams() {
   const params = useParams<{ project?: string; '*': string }>();
   const navigate = useNavigate();
   const qc = useQueryClient();
@@ -36,7 +36,7 @@ export function Wiki() {
     if (routeProject) {
       if (routeProject !== ctxProject) setProject(routeProject);
     } else if (ctxProject) {
-      navigate(`/wiki/${encodeURIComponent(ctxProject)}`, { replace: true });
+      navigate(`/diagrams/${encodeURIComponent(ctxProject)}`, { replace: true });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [routeProject, ctxProject]);
@@ -44,14 +44,14 @@ export function Wiki() {
   const project = routeProject ?? ctxProject;
 
   const treeQ = useQuery({
-    queryKey: ['wiki-tree', project],
-    queryFn: () => api.wiki.fullTree(project as string),
+    queryKey: ['diagram-tree', project],
+    queryFn: () => api.diagrams.fullTree(project as string),
     enabled: !!project,
   });
 
   const pageQ = useQuery({
-    queryKey: ['wiki-page', project, path],
-    queryFn: () => api.wiki.page.get(project as string, path),
+    queryKey: ['diagram-page', project, path],
+    queryFn: () => api.diagrams.page.get(project as string, path),
     enabled: !!project && !!path,
   });
 
@@ -69,13 +69,13 @@ export function Wiki() {
   }, [project, path]);
 
   function invalidateTree() {
-    qc.invalidateQueries({ queryKey: ['wiki-tree', project] });
+    qc.invalidateQueries({ queryKey: ['diagram-tree', project] });
   }
 
   function select(p: string) {
     if (!project) return;
     const encoded = encodePath(p);
-    navigate(`/wiki/${encodeURIComponent(project)}${encoded ? `/${encoded}` : ''}`);
+    navigate(`/diagrams/${encodeURIComponent(project)}${encoded ? `/${encoded}` : ''}`);
   }
 
   async function createPage(e: FormEvent) {
@@ -85,10 +85,10 @@ export function Wiki() {
     setCreating(true);
     setCreateError(null);
     try {
-      const page = await api.wiki.page.create(project, { path: trimmed });
+      const diagram = await api.diagrams.page.create(project, { path: trimmed });
       setNewPath('');
       invalidateTree();
-      select(page.path);
+      select(diagram.path);
     } catch (err) {
       setCreateError(err instanceof Error ? err.message : String(err));
     } finally {
@@ -98,56 +98,56 @@ export function Wiki() {
 
   async function saveDraft() {
     if (draft === null || !project) return;
-    await api.wiki.page.update(project, path, draft);
+    await api.diagrams.page.update(project, path, draft);
     setDraft(null);
-    qc.invalidateQueries({ queryKey: ['wiki-page', project, path] });
+    qc.invalidateQueries({ queryKey: ['diagram-page', project, path] });
     invalidateTree();
   }
 
   async function doDelete() {
     if (!project) return;
-    await api.wiki.page.remove(project, path);
+    await api.diagrams.page.remove(project, path);
     invalidateTree();
     setConfirmDelete(false);
-    navigate(`/wiki/${encodeURIComponent(project)}`);
+    navigate(`/diagrams/${encodeURIComponent(project)}`);
   }
 
   async function copyLink() {
     if (!project) return;
-    const url = `${window.location.origin}/wiki/${encodeURIComponent(project)}/${encodePath(path)}`;
+    const url = `${window.location.origin}/diagrams/${encodeURIComponent(project)}/${encodePath(path)}`;
     await navigator.clipboard.writeText(url);
     setCopied(true);
   }
 
   if (!project) {
-    return <p className="text-neutral-500">Create a project first from the header.</p>;
+    return <p className="text-slate-500">Create a project first from the header.</p>;
   }
 
   const tree = treeQ.data ?? [];
-  const page = pageQ.data;
+  const diagram = pageQ.data;
 
   return (
     <div className="grid grid-cols-1 gap-6 lg:grid-cols-[280px_minmax(0,1fr)] lg:items-start">
       <div className="card p-3">
         <div className="mb-2 flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-neutral-500">Wiki</h2>
-          <button onClick={() => select('')} className="btn-link" title="Wiki root">
+          <h2 className="text-sm font-semibold text-slate-500">Diagrams</h2>
+          <button onClick={() => select('')} className="btn-link" title="Diagrams root">
             Root
           </button>
         </div>
         {treeQ.isLoading ? (
-          <p className="text-sm text-neutral-400">Loading…</p>
+          <p className="text-sm text-slate-400">Loading…</p>
         ) : tree.length === 0 ? (
-          <p className="mb-2 text-sm text-neutral-400">No pages yet.</p>
+          <p className="mb-2 text-sm text-slate-400">No diagrams yet.</p>
         ) : (
           <Tree nodes={tree} selectedPath={path} onSelect={select} />
         )}
-        <form onSubmit={createPage} className="mt-3 border-t border-neutral-200 pt-3 dark:border-neutral-700">
-          <label className="mb-1 block text-xs font-medium text-neutral-500">New page</label>
+        <form onSubmit={createPage} className="mt-3 border-t border-slate-200 pt-3 dark:border-slate-800">
+          <label className="mb-1 block text-xs font-medium text-slate-500">New diagram</label>
           <input
             value={newPath}
             onChange={(e) => setNewPath(e.target.value)}
-            placeholder="Folder/Page name"
+            placeholder="Folder/Diagram name"
             className="input mb-1.5 text-sm"
           />
           {createError && <p className="mb-1.5 text-xs text-red-600">{createError}</p>}
@@ -159,20 +159,20 @@ export function Wiki() {
 
       <div className="card min-h-[16rem] p-4">
         {!path ? (
-          <p className="text-sm text-neutral-400">Select a page from the tree, or create one to get started.</p>
+          <p className="text-sm text-slate-400">Select a diagram from the tree, or create one to get started.</p>
         ) : pageQ.isLoading ? (
-          <p className="text-sm text-neutral-400">Loading…</p>
-        ) : pageQ.error || !page ? (
+          <p className="text-sm text-slate-400">Loading…</p>
+        ) : pageQ.error || !diagram ? (
           <p className="text-sm text-red-600">
-            {pageQ.error instanceof Error ? pageQ.error.message : `Page "${path}" not found.`}
+            {pageQ.error instanceof Error ? pageQ.error.message : `Diagram "${path}" not found.`}
           </p>
         ) : (
           <>
             <div className="mb-3 flex items-start justify-between gap-2">
               <div className="min-w-0">
-                <h1 className="truncate text-xl font-semibold tracking-tight">{page.title}</h1>
-                <p className="truncate text-xs text-neutral-400">
-                  {path}.md · Updated {new Date(page.updated).toLocaleString()}
+                <h1 className="truncate text-xl font-semibold tracking-tight">{diagram.title}</h1>
+                <p className="truncate text-xs text-slate-400">
+                  {path}.mmd · Updated {new Date(diagram.updated).toLocaleString()}
                 </p>
               </div>
               <div className="flex shrink-0 gap-2">
@@ -180,7 +180,7 @@ export function Wiki() {
                   {copied ? 'Copied!' : 'Copy link'}
                 </button>
                 {draft === null && (
-                  <button onClick={() => setDraft(page.content)} className="btn-secondary px-2.5 py-1 text-xs">
+                  <button onClick={() => setDraft(diagram.content)} className="btn-secondary px-2.5 py-1 text-xs">
                     Edit
                   </button>
                 )}
@@ -203,7 +203,7 @@ export function Wiki() {
 
             {draft !== null ? (
               <div>
-                <MarkdownField value={draft} onChange={setDraft} rows={16} autoFocus />
+                <MermaidField value={draft} onChange={setDraft} rows={16} autoFocus />
                 <div className="mt-2 flex gap-2">
                   <button onClick={saveDraft} className="btn-primary px-2.5 py-1 text-xs">
                     Save
@@ -213,10 +213,10 @@ export function Wiki() {
                   </button>
                 </div>
               </div>
-            ) : page.content.trim() ? (
-              <MarkdownBody text={page.content} />
+            ) : diagram.content.trim() ? (
+              <MermaidDiagram code={diagram.content} />
             ) : (
-              <p className="text-sm text-neutral-400">This page is empty. Click Edit to add content.</p>
+              <p className="text-sm text-slate-400">This diagram is empty. Click Edit to add content.</p>
             )}
           </>
         )}

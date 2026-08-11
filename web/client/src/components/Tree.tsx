@@ -1,13 +1,21 @@
 import { useState } from 'react';
-import type { WikiTreeNode } from '../api';
 
-export function WikiTree({
+export interface TreeNode {
+  name: string;
+  path: string;
+  type: 'folder' | 'page';
+  title?: string;
+  updated?: string;
+  children?: TreeNode[];
+}
+
+export function Tree({
   nodes,
   selectedPath,
   onSelect,
   depth = 0,
 }: {
-  nodes: WikiTreeNode[];
+  nodes: TreeNode[];
   selectedPath?: string;
   onSelect: (path: string) => void;
   depth?: number;
@@ -45,7 +53,7 @@ function FolderNode({
   onSelect,
   depth,
 }: {
-  node: WikiTreeNode;
+  node: TreeNode;
   selectedPath?: string;
   onSelect: (path: string) => void;
   depth: number;
@@ -64,7 +72,7 @@ function FolderNode({
         {node.name}
       </button>
       {expanded && node.children && (
-        <WikiTree nodes={node.children} selectedPath={selectedPath} onSelect={onSelect} depth={depth + 1} />
+        <Tree nodes={node.children} selectedPath={selectedPath} onSelect={onSelect} depth={depth + 1} />
       )}
     </li>
   );

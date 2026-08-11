@@ -90,6 +90,23 @@ export interface WikiTreeNode {
   children?: WikiTreeNode[];
 }
 
+export interface Diagram {
+  path: string;
+  title: string;
+  content: string;
+  created: string;
+  updated: string;
+}
+
+export interface DiagramTreeNode {
+  name: string;
+  path: string;
+  type: 'folder' | 'page';
+  title?: string;
+  updated?: string;
+  children?: DiagramTreeNode[];
+}
+
 export interface SessionEntry {
   project: string;
   timestamp: string;

@@ -16,7 +16,8 @@
   <a href="#data-model"><b>Data model</b></a> ·
   <a href="#wiki"><b>Wiki</b></a> ·
   <a href="#deployment-notes"><b>Deployment notes</b></a> ·
-  <a href="#tools-36"><b>Tools</b></a> ·
+  <a href="#diagrams"><b>Diagrams</b></a> ·
+  <a href="#tools-41"><b>Tools</b></a> ·
   <a href="#skills"><b>Skills</b></a>
 </p>
 
@@ -53,22 +54,25 @@ server.
   functions in `src/store/*.ts` directly, rather than going through the MCP protocol.
   Every item's globally unique numeric id makes `GET/PATCH/DELETE /api/items/:id` work
   regardless of type or project, mirroring `get_item`.
-- `web/client` — React + Vite + TypeScript + Tailwind, with five views: **Dashboard**
+- `web/client` — React + Vite + TypeScript + Tailwind, with six views: **Dashboard**
   (status counts + pending work, like `get_status`/`get_resume`), **Backlog** (an
   expandable Feature → Story → Task/Bug tree, the primary place to create items — each
   Feature row shows its `completed/total` Story count), **Board** (a real drag-and-drop
   Kanban — Stories swimlaned by Feature, or a Tasks/Bugs board scoped to one Story —
   dragging a card between columns updates its status; each Feature's lane shows the same
   `completed/total` count even while collapsed), **Item detail** (full read/edit/delete
-  view, reachable by clicking a card or typing a bare number into the search box), and
+  view, reachable by clicking a card or typing a bare number into the search box),
   **Wiki** (`/wiki/<project>/<path>` — a folder/page tree with the same write/preview
   markdown editor used for Notes and Comments, plus a "Copy link" button for pasting a
-  page into a comment elsewhere). On both Backlog and Board, a Feature whose Stories are
-  all done drops into a collapsed "Show Completed" section so the active work stays in
-  view. A sun/moon toggle in the header switches between light and dark — both built on
-  a single restrained neutral-gray palette (Tailwind's `neutral` scale, not the bluish
-  `slate`) with color reserved for status/type badges and primary actions, closer to
-  Notion/Claude/OpenAI than a typical "bright gradient + saturated dark mode" admin UI.
+  page into a comment elsewhere), and **Diagrams** (`/diagrams/<project>/<path>` — the
+  same folder/page tree pattern as the Wiki, but each page is Mermaid source rendered
+  live as an SVG, with a write/preview editor and its own "Copy link" button). On both
+  Backlog and Board, a Feature whose Stories are all done drops into a collapsed "Show
+  Completed" section so the active work stays in view. A sun/moon toggle in the header
+  switches between light and dark — both built on a single restrained neutral-gray
+  palette (Tailwind's `neutral` scale, not the bluish `slate`) with color reserved for
+  status/type badges and primary actions, closer to Notion/Claude/OpenAI than a typical
+  "bright gradient + saturated dark mode" admin UI.
 
 `web/` reads and writes the exact same `data/` files as the MCP server — a work item
 created via `/add-to-work` shows up on the board on refresh, and a card dragged on the
@@ -80,7 +84,7 @@ Registered as a user-scope Claude Code MCP server, so it's available from any pr
 directory:
 
 ```
-claude mcp add --scope user work-tracker -- npx tsx /home/rayan/projects/DaybreakOxford/agent-planner/src/server.ts
+claude mcp add --scope user work-tracker -- npx tsx /home/rayan/projects/MindIt/src/server.ts
 ```
 
 Run standalone for debugging: `npm start` (hangs waiting on stdio — that's expected; a real
@@ -107,6 +111,10 @@ least one Story and every Story is done (a Feature with zero Stories is never co
 marker; the web UI shows the same count and groups complete Features under "Show
 Completed" (see Web UI, above).
 
+The Wiki and Diagrams sections sit outside this hierarchy entirely — both are
+path-addressed content, not work items, so neither has a status or a parent/child link
+into Feature/Story/Task/Bug.
+
 ## IDs
 
 Every feature/story/task/bug gets a plain sequential number (`1`, `2`, `3`, …) from a single
@@ -127,6 +135,7 @@ data/<project-slug>/
   bugs/<zero-padded-id>.md
   wiki/<...folders>/<page>.md   # nested knowledge base, Obsidian-style
   deployments/<zero-padded-id>.md   # deployment history
+  diagrams/<...folders>/<page>.mmd   # nested Mermaid diagrams, same layout as wiki/
   LOG.md          # append-only session log, newest entry first
 data/.counter     # shared id counter, global across all projects/types
 ```
@@ -176,7 +185,38 @@ counter), stored at `data/<project-slug>/deployments/<zero-padded-id>.md`.
 `get_resume` includes the most recent deployment note per project (`lastDeployment`)
 alongside the last session entry, so `/resume` surfaces what was last shipped.
 
-## Tools (36)
+## Diagrams
+
+A per-project collection of Mermaid diagrams, laid out with the exact same nested
+folder/page structure as the Wiki (`data/<project-slug>/diagrams/…`), addressed by path
+rather than a number for the same reason. The difference is what each page holds: instead
+of a markdown body, a diagram's frontmatter (`title`, `created`, `updated`) is followed by
+raw Mermaid source (e.g. `graph TD\n  A --> B`) — the file *is* the diagram definition, not
+prose wrapped around one.
+
+| Tool | What it does |
+|---|---|
+| `create_diagram` | Create a diagram at a path (creates parent folders); fails if it already exists |
+| `update_diagram` | Overwrite a diagram's full Mermaid source |
+| `read_diagram` | Read a diagram's title + Mermaid source |
+| `delete_diagram` | Delete a diagram |
+| `list_diagrams` | List a folder's contents (one level, or `recursive: true` for the full tree) |
+
+There's no `append_diagram` — unlike wiki prose, Mermaid source has a strict grammar
+(it starts with a single diagram-type declaration like `graph TD` or `sequenceDiagram`),
+so blindly appending text is much more likely to break it than help; `update_diagram`
+(full overwrite) is the only edit operation.
+
+Diagrams are referenced from wiki pages, item notes, or comments the same way wiki pages
+reference each other — paste the link, e.g.
+`[Deploy flow](/diagrams/daybreak-oxford/Infra/Deploy%20Flow)`. It's a plain clickable
+link, not an auto-embed — visiting it opens the diagram's own page, rendered live as an
+SVG. Every diagram tool's response includes this pasteable link. The web UI's `/diagrams`
+page mirrors `/wiki` exactly (tree sidebar, write/preview editor, "Copy link" button),
+except Preview renders the actual Mermaid diagram instead of markdown, and an invalid
+diagram shows an inline error instead of crashing the page.
+
+## Tools (41)
 
 | Verb | Feature | Story | Task | Bug |
 |---|---|---|---|---|
@@ -188,8 +228,8 @@ alongside the last session entry, so `/resume` surfaces what was last shipped.
 Plus: `link_stories`, `unlink_stories`, `get_status` (counts by type/status), `log_session`,
 `get_resume` (pending items + last session + last deployment, per-project or cross-project),
 `get_item` (look up any item by number alone, regardless of type or project),
-`add_comment`/`update_comment`/`delete_comment` (ADO-style comment threads on any item), the
-wiki tools, and the deployment note tools — see above.
+`add_comment`/`update_comment`/`delete_comment` (ADO-style comment threads on any item), and
+the wiki, deployment note, and diagram tools — see above.
 
 Deleting a Feature/Story with children attached is blocked with a warning unless `force:
 true` is passed; force-delete leaves children pointing at a now-missing parent id (a stale
