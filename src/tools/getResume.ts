@@ -3,6 +3,7 @@ import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { listItems } from '../store/items.js';
 import { listProjectSlugs } from '../store/paths.js';
 import { getLastSessionEntry } from '../store/sessions.js';
+import { getLastDeploymentNote } from '../store/deployments.js';
 import type { ItemStatus, ItemType } from '../types.js';
 import { safeHandler } from './common.js';
 
@@ -19,6 +20,7 @@ function resumeForProject(project: string) {
     pendingTasks: pendingItems('task', project),
     pendingBugs: pendingItems('bug', project),
     lastSession: getLastSessionEntry(project),
+    lastDeployment: getLastDeploymentNote(project),
   };
 }
 
@@ -42,7 +44,7 @@ export function registerGetResumeTool(server: McpServer): void {
         const r = resumeForProject(slug);
         const hasPending =
           r.pendingFeatures.length || r.pendingStories.length || r.pendingTasks.length || r.pendingBugs.length;
-        if (hasPending || r.lastSession) result[slug] = r;
+        if (hasPending || r.lastSession || r.lastDeployment) result[slug] = r;
       }
       return JSON.stringify(result, null, 2);
     })

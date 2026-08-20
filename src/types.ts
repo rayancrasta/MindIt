@@ -92,3 +92,20 @@ export interface SessionEntry {
   blockers?: string;
   next?: string;
 }
+
+export type DeploymentStatus = 'success' | 'failed' | 'rolled_back';
+
+export const DEPLOYMENT_STATUSES: DeploymentStatus[] = ['success', 'failed', 'rolled_back'];
+
+export interface DeploymentNote {
+  id: string;
+  project: string;
+  commitHash: string;
+  environment: string;
+  status: DeploymentStatus;
+  deployedBy: string;
+  timestamp: string;
+  notes?: string;
+  created: string;
+  updated: string;
+}

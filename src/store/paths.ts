@@ -67,6 +67,12 @@ export function wikiDir(project: string): string {
   return dir;
 }
 
+export function deploymentsDir(project: string): string {
+  const dir = path.join(projectDir(project), 'deployments');
+  fs.mkdirSync(dir, { recursive: true });
+  return dir;
+}
+
 export function listProjectSlugs(): string[] {
   return fs
     .readdirSync(dataDir(), { withFileTypes: true })

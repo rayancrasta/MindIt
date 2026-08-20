@@ -15,7 +15,8 @@
   <a href="#getting-started"><b>Getting started</b></a> ·
   <a href="#data-model"><b>Data model</b></a> ·
   <a href="#wiki"><b>Wiki</b></a> ·
-  <a href="#tools-31"><b>Tools</b></a> ·
+  <a href="#deployment-notes"><b>Deployment notes</b></a> ·
+  <a href="#tools-36"><b>Tools</b></a> ·
   <a href="#skills"><b>Skills</b></a>
 </p>
 
@@ -111,6 +112,7 @@ data/<project-slug>/
   tasks/<zero-padded-id>.md
   bugs/<zero-padded-id>.md
   wiki/<...folders>/<page>.md   # nested knowledge base, Obsidian-style
+  deployments/<zero-padded-id>.md   # deployment history
   LOG.md          # append-only session log, newest entry first
 data/.counter     # shared id counter, global across all projects/types
 ```
@@ -143,7 +145,24 @@ Every wiki tool's response includes this pasteable link. The web UI's `/wiki` pa
 the same tree with a "Copy link" button, and same-origin links in Notes/Comments (`/wiki/…`,
 `/item/…`) navigate in-app instead of opening a new tab.
 
-## Tools (31)
+## Deployment Notes
+
+A per-project deploy history — record what commit went out, when, to which environment, and
+how it went. Numbered the same way as features/stories/tasks/bugs (shares the global id
+counter), stored at `data/<project-slug>/deployments/<zero-padded-id>.md`.
+
+| Tool | What it does |
+|---|---|
+| `add_deployment_note` | Record a deployment: `project` + `commitHash` are required; `environment` (default `production`), `status` (`success`/`failed`/`rolled_back`, default `success`), `deployedBy` (default: local OS username), and `timestamp` (default: now) can all be overridden |
+| `list_deployment_notes` | List deployment notes, optionally filtered by project/environment/status |
+| `get_deployment_note` | Look up one deployment note by number |
+| `update_deployment_note` | Correct any field after the fact (e.g. mark a deploy `rolled_back` later) |
+| `delete_deployment_note` | Delete a deployment note |
+
+`get_resume` includes the most recent deployment note per project (`lastDeployment`)
+alongside the last session entry, so `/resume` surfaces what was last shipped.
+
+## Tools (36)
 
 | Verb | Feature | Story | Task | Bug |
 |---|---|---|---|---|
@@ -153,9 +172,10 @@ the same tree with a "Copy link" button, and same-origin links in Notes/Comments
 | list | `list_features` | `list_stories` | `list_tasks` | `list_bugs` |
 
 Plus: `link_stories`, `unlink_stories`, `get_status` (counts by type/status), `log_session`,
-`get_resume` (pending items + last session, per-project or cross-project), `get_item` (look
-up any item by number alone, regardless of type or project), `add_comment`/`update_comment`/
-`delete_comment` (ADO-style comment threads on any item), and the wiki tools — see above.
+`get_resume` (pending items + last session + last deployment, per-project or cross-project),
+`get_item` (look up any item by number alone, regardless of type or project),
+`add_comment`/`update_comment`/`delete_comment` (ADO-style comment threads on any item), the
+wiki tools, and the deployment note tools — see above.
 
 Deleting a Feature/Story with children attached is blocked with a warning unless `force:
 true` is passed; force-delete leaves children pointing at a now-missing parent id (a stale

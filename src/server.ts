@@ -32,6 +32,11 @@ import { registerAppendWikiPageTool } from './tools/appendWikiPage.js';
 import { registerReadWikiPageTool } from './tools/readWikiPage.js';
 import { registerDeleteWikiPageTool } from './tools/deleteWikiPage.js';
 import { registerListWikiTool } from './tools/listWiki.js';
+import { registerAddDeploymentNoteTool } from './tools/addDeploymentNote.js';
+import { registerListDeploymentNotesTool } from './tools/listDeploymentNotes.js';
+import { registerGetDeploymentNoteTool } from './tools/getDeploymentNote.js';
+import { registerUpdateDeploymentNoteTool } from './tools/updateDeploymentNote.js';
+import { registerDeleteDeploymentNoteTool } from './tools/deleteDeploymentNote.js';
 
 const server = new McpServer({ name: 'work-tracker', version: '0.1.0' });
 
@@ -66,6 +71,11 @@ registerAppendWikiPageTool(server);
 registerReadWikiPageTool(server);
 registerDeleteWikiPageTool(server);
 registerListWikiTool(server);
+registerAddDeploymentNoteTool(server);
+registerListDeploymentNotesTool(server);
+registerGetDeploymentNoteTool(server);
+registerUpdateDeploymentNoteTool(server);
+registerDeleteDeploymentNoteTool(server);
 
 async function main() {
   const transport = new StdioServerTransport();
