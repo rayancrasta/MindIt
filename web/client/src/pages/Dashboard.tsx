@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import { api, ITEM_STATUSES, type Item, type ItemType } from '../api';
 import { useProject } from '../context/ProjectContext';
 import { StatusBadge } from '../components/StatusBadge';
+import { DeploymentStatusBadge } from '../components/DeploymentStatusBadge';
+import { EnvironmentBadge } from '../components/EnvironmentBadge';
 
 const TYPE_LABELS: Record<ItemType, string> = { feature: 'Features', story: 'Stories', task: 'Tasks', bug: 'Bugs' };
 const TYPES: ItemType[] = ['feature', 'story', 'task', 'bug'];
@@ -95,6 +97,25 @@ export function Dashboard() {
                 <span className="font-medium text-slate-600 dark:text-slate-300">Next:</span> {resume.lastSession.next}
               </p>
             )}
+          </div>
+        </section>
+      )}
+
+      {resume?.lastDeployment && (
+        <section>
+          <h2 className="mb-2 text-lg font-semibold tracking-tight">Last deployment</h2>
+          <div className="card p-3 text-sm">
+            <div className="mb-2 flex flex-wrap items-center gap-2">
+              <code className="rounded bg-slate-100 px-1.5 py-0.5 text-xs font-medium dark:bg-slate-800">
+                {resume.lastDeployment.commitHash}
+              </code>
+              <EnvironmentBadge environment={resume.lastDeployment.environment} />
+              <DeploymentStatusBadge status={resume.lastDeployment.status} />
+              <span className="ml-auto text-xs text-slate-400">
+                {new Date(resume.lastDeployment.timestamp).toLocaleString()}
+              </span>
+            </div>
+            <p className="text-xs text-slate-400">by {resume.lastDeployment.deployedBy}</p>
           </div>
         </section>
       )}

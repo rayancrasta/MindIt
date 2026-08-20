@@ -7,6 +7,7 @@ import { Backlog } from './pages/Backlog';
 import { Board } from './pages/Board';
 import { ItemDetail } from './pages/ItemDetail';
 import { Wiki } from './pages/Wiki';
+import { Deployments } from './pages/Deployments';
 
 export default function App() {
   return (
@@ -21,6 +22,7 @@ export default function App() {
             <Route path="/wiki" element={<Wiki />} />
             <Route path="/wiki/:project" element={<Wiki />} />
             <Route path="/wiki/:project/*" element={<Wiki />} />
+            <Route path="/deployments" element={<Deployments />} />
           </Routes>
         </Layout>
       </ProjectProvider>

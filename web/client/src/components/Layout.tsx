@@ -9,6 +9,7 @@ const NAV = [
   { to: '/backlog', label: 'Backlog' },
   { to: '/board', label: 'Board' },
   { to: '/wiki', label: 'Wiki' },
+  { to: '/deployments', label: 'Deployments' },
 ];
 
 export function Layout({ children }: { children: ReactNode }) {

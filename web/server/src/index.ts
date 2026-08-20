@@ -9,6 +9,7 @@ import { statusRouter } from './routes/status.js';
 import { resumeRouter } from './routes/resume.js';
 import { logRouter } from './routes/log.js';
 import { wikiRouter } from './routes/wiki.js';
+import { deploymentsRouter } from './routes/deployments.js';
 
 const app = express();
 app.use(express.json());
@@ -26,6 +27,7 @@ app.use('/api/status', statusRouter);
 app.use('/api/resume', resumeRouter);
 app.use('/api/projects/:project/log', logRouter);
 app.use('/api/projects/:project/wiki', wikiRouter);
+app.use('/api/deployments', deploymentsRouter);
 
 const PORT = process.env.PORT ? Number(process.env.PORT) : 4001;
 app.listen(PORT, () => {

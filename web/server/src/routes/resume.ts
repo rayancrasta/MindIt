@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { listItems } from '../../../../src/store/items.js';
 import { listProjectSlugs } from '../../../../src/store/paths.js';
 import { getLastSessionEntry } from '../../../../src/store/sessions.js';
+import { getLastDeploymentNote } from '../../../../src/store/deployments.js';
 import type { ItemStatus, ItemType } from '../../../../src/types.js';
 
 export const resumeRouter = Router();
@@ -19,6 +20,7 @@ function resumeForProject(project: string) {
     pendingTasks: pendingItems('task', project),
     pendingBugs: pendingItems('bug', project),
     lastSession: getLastSessionEntry(project),
+    lastDeployment: getLastDeploymentNote(project),
   };
 }
 
@@ -32,7 +34,7 @@ resumeRouter.get('/', (req, res) => {
     const r = resumeForProject(slug);
     const hasPending =
       r.pendingFeatures.length || r.pendingStories.length || r.pendingTasks.length || r.pendingBugs.length;
-    if (hasPending || r.lastSession) result[slug] = r;
+    if (hasPending || r.lastSession || r.lastDeployment) result[slug] = r;
   }
   res.json(result);
 });

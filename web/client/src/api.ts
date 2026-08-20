@@ -88,12 +88,29 @@ export interface WikiFolderListing {
   pages: { path: string; title: string; updated: string }[];
 }
 
+export type DeploymentStatus = 'success' | 'failed' | 'rolled_back';
+export const DEPLOYMENT_STATUSES: DeploymentStatus[] = ['success', 'failed', 'rolled_back'];
+
+export interface DeploymentNote {
+  id: string;
+  project: string;
+  commitHash: string;
+  environment: string;
+  status: DeploymentStatus;
+  deployedBy: string;
+  timestamp: string;
+  notes?: string;
+  created: string;
+  updated: string;
+}
+
 export interface ResumeData {
   pendingFeatures: Feature[];
   pendingStories: Story[];
   pendingTasks: Task[];
   pendingBugs: Bug[];
   lastSession: SessionEntry | null;
+  lastDeployment: DeploymentNote | null;
 }
 
 export type StatusCounts = Record<ItemType, Record<string, number>>;
@@ -214,5 +231,33 @@ export const api = {
       remove: (project: string, path: string) =>
         req<WikiPage>(`/projects/${encodeURIComponent(project)}/wiki/page${qs({ path })}`, { method: 'DELETE' }),
     },
+  },
+  deployments: {
+    list: (project?: string, environment?: string, status?: DeploymentStatus) =>
+      req<DeploymentNote[]>(`/deployments${qs({ project, environment, status })}`),
+    create: (data: {
+      project: string;
+      commitHash: string;
+      environment?: string;
+      status?: DeploymentStatus;
+      deployedBy?: string;
+      timestamp?: string;
+      notes?: string;
+    }) => req<DeploymentNote>('/deployments', { method: 'POST', body: JSON.stringify(data) }),
+    get: (project: string, id: string) => req<DeploymentNote>(`/deployments/${id}${qs({ project })}`),
+    update: (
+      project: string,
+      id: string,
+      patch: Partial<{
+        commitHash: string;
+        environment: string;
+        status: DeploymentStatus;
+        deployedBy: string;
+        timestamp: string;
+        notes: string;
+      }>
+    ) => req<DeploymentNote>(`/deployments/${id}${qs({ project })}`, { method: 'PATCH', body: JSON.stringify(patch) }),
+    remove: (project: string, id: string) =>
+      req<{ message: string }>(`/deployments/${id}${qs({ project })}`, { method: 'DELETE' }),
   },
 };
