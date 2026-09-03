@@ -14,7 +14,7 @@ export function WikiTree({
 }) {
   return (
     <ul
-      className={depth === 0 ? 'space-y-0.5' : 'ml-3 space-y-0.5 border-l border-slate-200 pl-2 dark:border-slate-800'}
+      className={depth === 0 ? 'space-y-0.5' : 'ml-3 space-y-0.5 border-l border-neutral-200 pl-2 dark:border-neutral-700'}
     >
       {nodes.map((n) =>
         n.type === 'folder' ? (
@@ -27,7 +27,7 @@ export function WikiTree({
               className={`block w-full truncate rounded px-1.5 py-1 text-left text-sm transition-colors ${
                 selectedPath === n.path
                   ? 'bg-blue-500/15 font-medium text-blue-700 dark:text-blue-300'
-                  : 'text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800'
+                  : 'text-neutral-600 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-700'
               }`}
             >
               {n.title}
@@ -58,7 +58,7 @@ function FolderNode({
     <li>
       <button
         onClick={() => setOpen((o) => !o)}
-        className="flex w-full items-center gap-1 rounded px-1.5 py-1 text-left text-sm font-medium text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800"
+        className="flex w-full items-center gap-1 rounded px-1.5 py-1 text-left text-sm font-medium text-neutral-500 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:bg-neutral-700"
       >
         <span className={`inline-block text-[10px] transition-transform ${expanded ? '' : '-rotate-90'}`}>▾</span>
         {node.name}

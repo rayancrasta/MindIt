@@ -120,7 +120,7 @@ export function Wiki() {
   }
 
   if (!project) {
-    return <p className="text-slate-500">Create a project first from the header.</p>;
+    return <p className="text-neutral-500">Create a project first from the header.</p>;
   }
 
   const tree = treeQ.data ?? [];
@@ -130,20 +130,20 @@ export function Wiki() {
     <div className="grid grid-cols-1 gap-6 lg:grid-cols-[280px_minmax(0,1fr)] lg:items-start">
       <div className="card p-3">
         <div className="mb-2 flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-slate-500">Wiki</h2>
+          <h2 className="text-sm font-semibold text-neutral-500">Wiki</h2>
           <button onClick={() => select('')} className="btn-link" title="Wiki root">
             Root
           </button>
         </div>
         {treeQ.isLoading ? (
-          <p className="text-sm text-slate-400">Loading…</p>
+          <p className="text-sm text-neutral-400">Loading…</p>
         ) : tree.length === 0 ? (
-          <p className="mb-2 text-sm text-slate-400">No pages yet.</p>
+          <p className="mb-2 text-sm text-neutral-400">No pages yet.</p>
         ) : (
           <WikiTree nodes={tree} selectedPath={path} onSelect={select} />
         )}
-        <form onSubmit={createPage} className="mt-3 border-t border-slate-200 pt-3 dark:border-slate-800">
-          <label className="mb-1 block text-xs font-medium text-slate-500">New page</label>
+        <form onSubmit={createPage} className="mt-3 border-t border-neutral-200 pt-3 dark:border-neutral-700">
+          <label className="mb-1 block text-xs font-medium text-neutral-500">New page</label>
           <input
             value={newPath}
             onChange={(e) => setNewPath(e.target.value)}
@@ -159,9 +159,9 @@ export function Wiki() {
 
       <div className="card min-h-[16rem] p-4">
         {!path ? (
-          <p className="text-sm text-slate-400">Select a page from the tree, or create one to get started.</p>
+          <p className="text-sm text-neutral-400">Select a page from the tree, or create one to get started.</p>
         ) : pageQ.isLoading ? (
-          <p className="text-sm text-slate-400">Loading…</p>
+          <p className="text-sm text-neutral-400">Loading…</p>
         ) : pageQ.error || !page ? (
           <p className="text-sm text-red-600">
             {pageQ.error instanceof Error ? pageQ.error.message : `Page "${path}" not found.`}
@@ -171,7 +171,7 @@ export function Wiki() {
             <div className="mb-3 flex items-start justify-between gap-2">
               <div className="min-w-0">
                 <h1 className="truncate text-xl font-semibold tracking-tight">{page.title}</h1>
-                <p className="truncate text-xs text-slate-400">
+                <p className="truncate text-xs text-neutral-400">
                   {path}.md · Updated {new Date(page.updated).toLocaleString()}
                 </p>
               </div>
@@ -216,7 +216,7 @@ export function Wiki() {
             ) : page.content.trim() ? (
               <MarkdownBody text={page.content} />
             ) : (
-              <p className="text-sm text-slate-400">This page is empty. Click Edit to add content.</p>
+              <p className="text-sm text-neutral-400">This page is empty. Click Edit to add content.</p>
             )}
           </>
         )}

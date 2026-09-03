@@ -25,7 +25,7 @@ export function ItemDetail() {
   });
 
   if (!id) return null;
-  if (isLoading) return <p className="text-slate-500">Loading…</p>;
+  if (isLoading) return <p className="text-neutral-500">Loading…</p>;
   if (error || !data) {
     return <p className="text-red-600">{error instanceof Error ? error.message : `Item ${id} not found.`}</p>;
   }
@@ -118,7 +118,7 @@ export function ItemDetail() {
       {titleDraft === null ? (
         <h1
           onClick={() => setTitleDraft(item.title)}
-          className="-mx-1.5 mb-4 cursor-text rounded-lg px-1.5 py-0.5 text-2xl font-semibold tracking-tight transition-colors hover:bg-slate-100/70 dark:hover:bg-slate-800/50"
+          className="-mx-1.5 mb-4 cursor-text rounded-lg px-1.5 py-0.5 text-2xl font-semibold tracking-tight transition-colors hover:bg-neutral-100/70 dark:hover:bg-neutral-700/50"
           title="Click to edit"
         >
           {item.title}
@@ -135,7 +135,7 @@ export function ItemDetail() {
       )}
 
       <div className="mb-4 flex items-center gap-2">
-        <label className="text-sm text-slate-500">Status</label>
+        <label className="text-sm text-neutral-500">Status</label>
         <select
           value={item.status}
           onChange={(e) => updateStatus(e.target.value as ItemStatus)}
@@ -149,7 +149,7 @@ export function ItemDetail() {
         </select>
       </div>
 
-      <div className="mb-4 text-xs text-slate-400">
+      <div className="mb-4 text-xs text-neutral-400">
         Created {new Date(item.created).toLocaleString()} · Updated {new Date(item.updated).toLocaleString()} · Project{' '}
         {project}
       </div>
@@ -158,7 +158,7 @@ export function ItemDetail() {
         <div className="mb-1 flex items-center justify-between">
           <button
             onClick={() => setNotesCollapsed((c) => !c)}
-            className="flex items-center gap-1 text-sm font-semibold text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
+            className="flex items-center gap-1 text-sm font-semibold text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300"
           >
             <span className={`inline-block text-[10px] transition-transform ${notesCollapsed ? '-rotate-90' : ''}`}>
               ▾
@@ -203,7 +203,7 @@ export function ItemDetail() {
 
       {type === 'story' && (
         <div className="mb-6">
-          <label className="mb-1 block text-sm font-medium text-slate-500">Related stories</label>
+          <label className="mb-1 block text-sm font-medium text-neutral-500">Related stories</label>
           <ul className="mb-2 space-y-1">
             {(item as Story).links?.length ? (
               (item as Story).links!.map((l) => (
@@ -211,13 +211,13 @@ export function ItemDetail() {
                   <Link to={`/item/${l}`} className="text-blue-600 hover:underline dark:text-blue-400">
                     #{l}
                   </Link>
-                  <button onClick={() => removeLink(l)} className="text-xs text-slate-400 hover:text-red-600">
+                  <button onClick={() => removeLink(l)} className="text-xs text-neutral-400 hover:text-red-600">
                     unlink
                   </button>
                 </li>
               ))
             ) : (
-              <li className="text-sm text-slate-400">No linked stories.</li>
+              <li className="text-sm text-neutral-400">No linked stories.</li>
             )}
           </ul>
           <div className="flex gap-2">
@@ -236,7 +236,7 @@ export function ItemDetail() {
 
       <Comments itemId={item.id} comments={item.comments ?? []} />
 
-      <div className="border-t border-slate-200 pt-4 dark:border-slate-800">
+      <div className="border-t border-neutral-200 pt-4 dark:border-neutral-700">
         {deleteError && <p className="mb-2 text-sm text-red-600">{deleteError}</p>}
         {!confirmingForce ? (
           <button onClick={() => doDelete(false)} className="btn-danger-outline">
@@ -329,22 +329,22 @@ function ChildrenList({
           : 'mb-6'
       }
     >
-      <label className="mb-1.5 block text-sm font-semibold text-slate-500">
+      <label className="mb-1.5 block text-sm font-semibold text-neutral-500">
         {type === 'feature' ? 'Stories' : 'Tasks & bugs'}
         {type === 'story' && children.length > 0 && (
-          <span className="ml-1 font-normal text-slate-400">
+          <span className="ml-1 font-normal text-neutral-400">
             ({done}/{children.length})
           </span>
         )}
       </label>
       {children.length === 0 ? (
-        <p className="text-sm text-slate-400">None yet.</p>
+        <p className="text-sm text-neutral-400">None yet.</p>
       ) : (
         <ul className="space-y-1">
           {children.map((c) => (
             <li
               key={c.id}
-              className="flex items-center gap-2 rounded-lg p-1 text-sm transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/60"
+              className="flex items-center gap-2 rounded-lg p-1 text-sm transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-700/60"
             >
               <ItemTypeBadge
                 type={c.type}
@@ -355,7 +355,7 @@ function ChildrenList({
               <Link
                 to={`/item/${c.id}`}
                 title={c.title}
-                className={`flex-1 truncate hover:underline ${isDone(c.status) ? 'text-slate-400 line-through' : ''}`}
+                className={`flex-1 truncate hover:underline ${isDone(c.status) ? 'text-neutral-400 line-through' : ''}`}
               >
                 {c.title}
               </Link>

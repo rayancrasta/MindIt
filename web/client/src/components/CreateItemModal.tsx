@@ -48,20 +48,20 @@ export function CreateItemModal({ project, type, parent, onClose, onCreated }: P
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-neutral-950/50 p-4 backdrop-blur-sm"
       onClick={onClose}
     >
       <form
         onClick={(e) => e.stopPropagation()}
         onSubmit={submit}
-        className="w-full max-w-md rounded-2xl bg-white p-5 shadow-2xl ring-1 ring-black/5 dark:bg-slate-900 dark:ring-white/10"
+        className="w-full max-w-md rounded-2xl bg-white p-5 shadow-2xl ring-1 ring-black/5 dark:bg-neutral-800 dark:ring-white/10"
       >
         <h3 className="mb-4 text-base font-semibold">{TITLES[type]}</h3>
 
-        <label className="mb-1 block text-sm font-medium text-slate-600 dark:text-slate-300">Title</label>
+        <label className="mb-1 block text-sm font-medium text-neutral-600 dark:text-neutral-300">Title</label>
         <input autoFocus value={title} onChange={(e) => setTitle(e.target.value)} className="input mb-3" />
 
-        <label className="mb-1 block text-sm font-medium text-slate-600 dark:text-slate-300">Notes (optional)</label>
+        <label className="mb-1 block text-sm font-medium text-neutral-600 dark:text-neutral-300">Notes (optional)</label>
         <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} className="input mb-3 resize-y" />
 
         {error && <p className="mb-2 text-sm text-red-600">{error}</p>}

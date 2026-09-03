@@ -57,19 +57,19 @@ export function Comments({ itemId, comments }: { itemId: string; comments: Comme
 
   return (
     <div className="mb-6">
-      <label className="mb-1 block text-sm font-medium text-slate-500">
-        Comments{comments.length > 0 && <span className="ml-1 font-normal text-slate-400">({comments.length})</span>}
+      <label className="mb-1 block text-sm font-medium text-neutral-500">
+        Comments{comments.length > 0 && <span className="ml-1 font-normal text-neutral-400">({comments.length})</span>}
       </label>
 
       {sorted.length > 0 && (
         <ul className="mb-3 space-y-3">
           {sorted.map((c) => (
             <li key={c.id} className="card p-2.5">
-              <div className="mb-1.5 flex items-center gap-2 text-xs text-slate-400">
-                <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-blue-500/15 text-[10px] font-semibold text-blue-700 dark:text-blue-300">
+              <div className="mb-1.5 flex items-center gap-2 text-xs text-neutral-400">
+                <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-blue-500/15 text-[10px] font-semibold text-blue-700 dark:bg-blue-400/10 dark:text-blue-300">
                   {(c.author || '?').trim().charAt(0).toUpperCase()}
                 </span>
-                <span className="font-medium text-slate-600 dark:text-slate-300">{c.author}</span>
+                <span className="font-medium text-neutral-600 dark:text-neutral-300">{c.author}</span>
                 <span>{new Date(c.created).toLocaleString()}</span>
                 {c.updated && (
                   <span className="italic" title={`Edited ${new Date(c.updated).toLocaleString()}`}>
@@ -90,7 +90,7 @@ export function Comments({ itemId, comments }: { itemId: string; comments: Comme
                       </button>
                       <button
                         onClick={() => setConfirmDeleteId(null)}
-                        className="hover:text-slate-600 dark:hover:text-slate-300"
+                        className="hover:text-neutral-600 dark:hover:text-neutral-300"
                       >
                         Cancel
                       </button>

@@ -27,7 +27,7 @@ export function Deployments() {
   });
 
   if (!project) {
-    return <p className="text-slate-500">Pick a project to see its deployment history.</p>;
+    return <p className="text-neutral-500">Pick a project to see its deployment history.</p>;
   }
 
   const notes = notesQ.data ?? [];
@@ -49,7 +49,7 @@ export function Deployments() {
 
       <div className="mb-4 flex flex-wrap items-center gap-3">
         <div className="flex items-center gap-1.5">
-          <span className="text-xs font-medium text-slate-500">Environment</span>
+          <span className="text-xs font-medium text-neutral-500">Environment</span>
           <select
             aria-label="Filter by environment"
             value={environment}
@@ -65,11 +65,13 @@ export function Deployments() {
           </select>
         </div>
         <div className="flex items-center gap-1">
-          <span className="mr-1 text-xs font-medium text-slate-500">Status</span>
+          <span className="mr-1 text-xs font-medium text-neutral-500">Status</span>
           <button
             onClick={() => setStatus('')}
             className={`rounded-full px-2.5 py-1 text-xs font-medium transition-colors ${
-              status === '' ? 'bg-blue-500 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
+              status === ''
+                ? 'bg-blue-600 text-white dark:bg-blue-500'
+                : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200 dark:bg-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-600'
             }`}
           >
             All
@@ -79,7 +81,9 @@ export function Deployments() {
               key={s}
               onClick={() => setStatus(s)}
               className={`rounded-full px-2.5 py-1 text-xs font-medium transition-colors ${
-                status === s ? 'bg-blue-500 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
+                status === s
+                  ? 'bg-blue-600 text-white dark:bg-blue-500'
+                  : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200 dark:bg-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-600'
               }`}
             >
               {STATUS_LABELS[s]}
@@ -89,9 +93,9 @@ export function Deployments() {
       </div>
 
       {notesQ.isLoading ? (
-        <p className="text-sm text-slate-400">Loading…</p>
+        <p className="text-sm text-neutral-400">Loading…</p>
       ) : notes.length === 0 ? (
-        <p className="text-sm text-slate-400">No deployments logged yet.</p>
+        <p className="text-sm text-neutral-400">No deployments logged yet.</p>
       ) : (
         <div className="space-y-3">
           {notes.map((note) => (
@@ -172,24 +176,24 @@ function DeploymentCard({
         aria-expanded={expanded}
       >
         <span
-          className="inline-flex shrink-0 items-center justify-center text-slate-400 transition-transform"
+          className="inline-flex shrink-0 items-center justify-center text-neutral-400 transition-transform"
           style={{ transform: expanded ? 'rotate(90deg)' : undefined }}
           aria-hidden
         >
           ▸
         </span>
-        <code className="rounded bg-slate-100 px-1.5 py-0.5 text-xs font-medium dark:bg-slate-800">
+        <code className="rounded bg-neutral-100 px-1.5 py-0.5 text-xs font-medium dark:bg-neutral-700">
           {note.commitHash}
         </code>
         <EnvironmentBadge environment={note.environment} />
         <DeploymentStatusBadge status={note.status} />
-        <span className="ml-auto text-xs text-slate-400">{new Date(note.timestamp).toLocaleString()}</span>
+        <span className="ml-auto text-xs text-neutral-400">{new Date(note.timestamp).toLocaleString()}</span>
       </button>
 
       {expanded && (
         <div className="mt-2 pl-5">
           <div className="mb-2 flex items-center justify-between">
-            <p className="text-xs text-slate-400">by {note.deployedBy}</p>
+            <p className="text-xs text-neutral-400">by {note.deployedBy}</p>
             <div className="flex gap-2">
               {editing ? (
                 <>
@@ -224,13 +228,13 @@ function DeploymentCard({
 
           {editing && (
             <div className="mb-2 flex flex-wrap items-center gap-2">
-              <label className="text-xs font-medium text-slate-500">Environment</label>
+              <label className="text-xs font-medium text-neutral-500">Environment</label>
               <input
                 value={environment}
                 onChange={(e) => setEnvironment(e.target.value)}
                 className="input w-32 py-0.5 text-xs"
               />
-              <label className="text-xs font-medium text-slate-500">Status</label>
+              <label className="text-xs font-medium text-neutral-500">Status</label>
               <select
                 aria-label="Edit deployment status"
                 value={status}
@@ -258,7 +262,7 @@ function DeploymentCard({
           ) : note.notes ? (
             <MarkdownBody text={note.notes} />
           ) : (
-            <p className="text-xs text-slate-400">No notes.</p>
+            <p className="text-xs text-neutral-400">No notes.</p>
           )}
         </div>
       )}

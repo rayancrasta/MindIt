@@ -26,18 +26,18 @@ const markdownComponents: Components = {
   ol: (props) => <ol className="mb-2 list-decimal space-y-0.5 pl-5 last:mb-0" {...props} />,
   blockquote: (props) => (
     <blockquote
-      className="mb-2 border-l-2 border-slate-300 pl-2 text-slate-500 italic last:mb-0 dark:border-slate-700 dark:text-slate-400"
+      className="mb-2 border-l-2 border-neutral-300 pl-2 text-neutral-500 italic last:mb-0 dark:border-neutral-600 dark:text-neutral-400"
       {...props}
     />
   ),
   pre: (props) => (
-    <pre className="mb-2 overflow-x-auto rounded bg-slate-100 p-2 text-xs last:mb-0 dark:bg-slate-800" {...props} />
+    <pre className="mb-2 overflow-x-auto rounded bg-neutral-100 p-2 text-xs last:mb-0 dark:bg-neutral-700" {...props} />
   ),
   code: ({ className, ...props }) =>
     /language-/.test(className ?? '') ? (
       <code className={className} {...props} />
     ) : (
-      <code className="rounded bg-slate-100 px-1 py-0.5 text-[0.85em] dark:bg-slate-800" {...props} />
+      <code className="rounded bg-neutral-100 px-1 py-0.5 text-[0.85em] dark:bg-neutral-700" {...props} />
     ),
   h1: (props) => <h4 className="mb-1 text-sm font-semibold" {...props} />,
   h2: (props) => <h4 className="mb-1 text-sm font-semibold" {...props} />,
@@ -46,7 +46,7 @@ const markdownComponents: Components = {
 
 export function MarkdownBody({ text }: { text: string }) {
   return (
-    <div className="text-sm text-slate-700 dark:text-slate-200">
+    <div className="text-sm text-neutral-700 dark:text-neutral-200">
       <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
         {text}
       </ReactMarkdown>
@@ -57,8 +57,8 @@ export function MarkdownBody({ text }: { text: string }) {
 function tabClass(active: boolean): string {
   return `px-3 py-1 text-xs font-medium transition-colors ${
     active
-      ? 'border-b-2 border-blue-500 text-slate-900 dark:text-white'
-      : 'border-b-2 border-transparent text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'
+      ? 'border-b-2 border-blue-500 text-neutral-900 dark:text-neutral-100'
+      : 'border-b-2 border-transparent text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300'
   }`;
 }
 
@@ -77,8 +77,8 @@ export function MarkdownField({
 }) {
   const [tab, setTab] = useState<'write' | 'preview'>('write');
   return (
-    <div className="overflow-hidden rounded-lg border border-slate-300 dark:border-slate-700">
-      <div className="flex border-b border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-800/60">
+    <div className="overflow-hidden rounded-lg border border-neutral-300 dark:border-neutral-600">
+      <div className="flex border-b border-neutral-200 bg-neutral-50 dark:border-neutral-700 dark:bg-neutral-700/60">
         <button type="button" onClick={() => setTab('write')} className={tabClass(tab === 'write')}>
           Write
         </button>
@@ -93,11 +93,11 @@ export function MarkdownField({
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
           rows={rows}
-          className="w-full resize-y rounded-b bg-transparent px-2 py-1.5 text-sm outline-none dark:bg-slate-800"
+          className="w-full resize-y rounded-b bg-transparent px-2 py-1.5 text-sm outline-none dark:bg-neutral-700"
         />
       ) : (
         <div className="min-h-[4rem] px-2 py-1.5">
-          {value.trim() ? <MarkdownBody text={value} /> : <p className="text-sm text-slate-400">Nothing to preview.</p>}
+          {value.trim() ? <MarkdownBody text={value} /> : <p className="text-sm text-neutral-400">Nothing to preview.</p>}
         </div>
       )}
     </div>

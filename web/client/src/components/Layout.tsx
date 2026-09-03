@@ -40,11 +40,11 @@ export function Layout({ children }: { children: ReactNode }) {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
-      <header className="bg-gradient-to-r from-blue-600 via-blue-500 to-sky-500 text-white shadow-md shadow-blue-500/20">
+    <div className="min-h-screen bg-neutral-50 text-neutral-900 dark:bg-neutral-900 dark:text-neutral-100">
+      <header className="border-b border-neutral-200 bg-white text-neutral-900 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-100">
         <div className="flex items-center gap-3 px-4 py-2.5">
           <Link to="/" className="flex items-center gap-2 pr-1">
-            <img src="/favicon.svg" alt="" className="size-6 drop-shadow-sm" />
+            <img src="/favicon.svg" alt="" className="size-6" />
             <span className="font-semibold tracking-tight">MindIt</span>
           </Link>
 
@@ -52,16 +52,14 @@ export function Layout({ children }: { children: ReactNode }) {
             <select
               value={project ?? ''}
               onChange={(e) => setProject(e.target.value)}
-              className="appearance-none rounded-full bg-white/10 py-1 pr-7 pl-3 text-sm font-medium outline-none transition-colors hover:bg-white/15 focus:bg-white/20"
+              className="appearance-none rounded-full bg-neutral-100 py-1 pr-7 pl-3 text-sm font-medium text-neutral-700 outline-none transition-colors hover:bg-neutral-200 focus:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-700 dark:focus:bg-neutral-700"
             >
               {projects.length === 0 && !project && <option value="">No projects yet</option>}
               {project && !projects.includes(project) && (
-                <option value={project} className="text-black">
-                  {project} (new)
-                </option>
+                <option value={project}>{project} (new)</option>
               )}
               {projects.map((p) => (
-                <option key={p} value={p} className="text-black">
+                <option key={p} value={p}>
                   {p}
                 </option>
               ))}
@@ -74,7 +72,7 @@ export function Layout({ children }: { children: ReactNode }) {
               strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"
-              className="pointer-events-none absolute top-1/2 right-2 size-3.5 -translate-y-1/2 text-white/70"
+              className="pointer-events-none absolute top-1/2 right-2 size-3.5 -translate-y-1/2 text-neutral-400 dark:text-neutral-500"
             >
               <path d="m6 9 6 6 6-6" />
             </svg>
@@ -88,16 +86,19 @@ export function Layout({ children }: { children: ReactNode }) {
                 onChange={(e) => setNewProjectName(e.target.value)}
                 onBlur={() => !newProjectName && setNewProjectOpen(false)}
                 placeholder="Project name"
-                className="w-36 rounded-full bg-white/10 px-3 py-1 text-sm placeholder-white/60 outline-none focus:bg-white/20"
+                className="w-36 rounded-full bg-neutral-100 px-3 py-1 text-sm text-neutral-900 placeholder-neutral-400 outline-none focus:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-100 dark:placeholder-neutral-500 dark:focus:bg-neutral-700"
               />
-              <button type="submit" className="rounded-full bg-white/10 px-2.5 py-1 text-sm hover:bg-white/20">
+              <button
+                type="submit"
+                className="rounded-full bg-neutral-100 px-2.5 py-1 text-sm text-neutral-700 hover:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-700"
+              >
                 Add
               </button>
             </form>
           ) : (
             <button
               onClick={() => setNewProjectOpen(true)}
-              className="inline-flex items-center gap-1 rounded-full bg-white/10 px-2.5 py-1 text-sm font-medium transition-colors hover:bg-white/20"
+              className="inline-flex items-center gap-1 rounded-full bg-neutral-100 px-2.5 py-1 text-sm font-medium text-neutral-700 transition-colors hover:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-700"
             >
               <span className="text-base leading-none">+</span> Project
             </button>
@@ -112,7 +113,7 @@ export function Layout({ children }: { children: ReactNode }) {
               strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"
-              className="pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-white/60"
+              className="pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-neutral-400 dark:text-neutral-500"
             >
               <circle cx="11" cy="11" r="7" />
               <path d="m21 21-4.35-4.35" />
@@ -121,7 +122,7 @@ export function Layout({ children }: { children: ReactNode }) {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Find by # …"
-              className="w-44 rounded-full bg-white/10 py-1 pr-3 pl-8 text-sm placeholder-white/60 outline-none transition-colors focus:bg-white/20 focus:w-56"
+              className="w-44 rounded-full bg-neutral-100 py-1 pr-3 pl-8 text-sm text-neutral-900 placeholder-neutral-400 outline-none transition-colors focus:w-56 focus:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-100 dark:placeholder-neutral-500 dark:focus:bg-neutral-700"
             />
           </form>
 
@@ -129,7 +130,7 @@ export function Layout({ children }: { children: ReactNode }) {
             onClick={toggleTheme}
             title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
             aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
-            className="rounded-full p-1.5 text-white/80 transition-colors hover:bg-white/15 hover:text-white"
+            className="rounded-full p-1.5 text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-neutral-900 dark:text-neutral-400 dark:hover:bg-neutral-700 dark:hover:text-neutral-100"
           >
             {theme === 'dark' ? (
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="size-4.5">
@@ -151,7 +152,9 @@ export function Layout({ children }: { children: ReactNode }) {
                 key={n.to}
                 to={n.to}
                 className={`rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
-                  active ? 'bg-white/15 text-white' : 'text-white/75 hover:bg-white/10 hover:text-white'
+                  active
+                    ? 'bg-neutral-100 text-neutral-900 dark:bg-neutral-800 dark:text-neutral-100'
+                    : 'text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900 dark:text-neutral-400 dark:hover:bg-neutral-700 dark:hover:text-neutral-100'
                 }`}
               >
                 {n.label}

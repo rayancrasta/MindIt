@@ -72,7 +72,7 @@ export function KanbanBoard({ lanes, onDrop, onAddToLane, childrenByParent, onTo
               <div className="mb-2 flex items-center gap-2">
                 <button
                   onClick={() => toggleLane(lane)}
-                  className="flex items-center gap-1.5 text-sm font-semibold text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white"
+                  className="flex items-center gap-1.5 text-sm font-semibold text-neutral-600 hover:text-neutral-900 dark:text-neutral-300 dark:hover:text-neutral-100"
                   aria-expanded={!collapsed}
                 >
                   <svg
@@ -83,7 +83,7 @@ export function KanbanBoard({ lanes, onDrop, onAddToLane, childrenByParent, onTo
                     <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clipRule="evenodd" />
                   </svg>
                   <span>{lane.label}</span>
-                  <span className="rounded-full bg-slate-200/80 px-1.5 py-0.5 text-[10px] font-medium text-slate-500 dark:bg-slate-800 dark:text-slate-400">
+                  <span className="rounded-full bg-neutral-200/80 px-1.5 py-0.5 text-[10px] font-medium text-neutral-500 dark:bg-neutral-700 dark:text-neutral-400">
                     {lane.items.filter((i) => isDone(i.status)).length}/{lane.items.length}
                   </span>
                 </button>
@@ -138,12 +138,12 @@ function Column({
       className={`min-h-[90px] rounded-xl border p-2 transition-colors ${
         isOver
           ? 'border-blue-400 bg-blue-50 dark:border-blue-500 dark:bg-blue-950/40'
-          : 'border-slate-200/80 bg-slate-100/70 dark:border-slate-800 dark:bg-slate-900/40'
+          : 'border-neutral-200/80 bg-neutral-100/70 dark:border-neutral-700 dark:bg-neutral-800/40'
       }`}
     >
       <div className="mb-2 flex items-center justify-between px-1">
-        <span className="text-xs font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">{label}</span>
-        <span className="rounded-full bg-slate-200/80 px-1.5 py-0.5 text-[10px] font-medium text-slate-500 dark:bg-slate-800 dark:text-slate-400">
+        <span className="text-xs font-semibold tracking-wide text-neutral-500 uppercase dark:text-neutral-400">{label}</span>
+        <span className="rounded-full bg-neutral-200/80 px-1.5 py-0.5 text-[10px] font-medium text-neutral-500 dark:bg-neutral-700 dark:text-neutral-400">
           {items.length}
         </span>
       </div>
@@ -188,7 +188,7 @@ function Card({
       style={style}
       {...listeners}
       {...attributes}
-      className={`cursor-grab rounded-lg border border-slate-200 bg-white p-2 text-sm shadow-sm transition-shadow active:cursor-grabbing hover:shadow-md dark:border-slate-700 dark:bg-slate-900 ${
+      className={`cursor-grab rounded-lg border border-neutral-200 bg-white p-2 text-sm shadow-sm transition-shadow active:cursor-grabbing hover:shadow-md dark:border-neutral-600 dark:bg-neutral-800 ${
         isDragging ? 'opacity-60 shadow-lg' : ''
       }`}
     >
@@ -201,12 +201,12 @@ function Card({
       <Link
         to={`/item/${item.id}`}
         onClick={(e) => e.stopPropagation()}
-        className={`line-clamp-2 hover:underline ${isChild && isDone(item.status) ? 'text-slate-400 line-through' : ''}`}
+        className={`line-clamp-2 hover:underline ${isChild && isDone(item.status) ? 'text-neutral-400 line-through' : ''}`}
       >
         {item.title}
       </Link>
       {checklist && checklist.length > 0 && onToggleChild && (
-        <ul className="mt-2 space-y-1 border-t border-slate-100 pt-2 dark:border-slate-800">
+        <ul className="mt-2 space-y-1 border-t border-neutral-100 pt-2 dark:border-neutral-700">
           {checklist.map((c) => (
             <li key={c.id} className="flex items-center gap-1.5">
               <TaskCheckbox checked={isDone(c.status)} onToggle={async () => onToggleChild(c)} />
@@ -214,7 +214,7 @@ function Card({
                 to={`/item/${c.id}`}
                 onClick={(e) => e.stopPropagation()}
                 className={`truncate text-xs hover:underline ${
-                  isDone(c.status) ? 'text-slate-400 line-through' : 'text-slate-600 dark:text-slate-300'
+                  isDone(c.status) ? 'text-neutral-400 line-through' : 'text-neutral-600 dark:text-neutral-300'
                 }`}
               >
                 {c.title}

@@ -65,7 +65,10 @@ server.
   markdown editor used for Notes and Comments, plus a "Copy link" button for pasting a
   page into a comment elsewhere). On both Backlog and Board, a Feature whose Stories are
   all done drops into a collapsed "Show Completed" section so the active work stays in
-  view.
+  view. A sun/moon toggle in the header switches between light and dark — both built on
+  a single restrained neutral-gray palette (Tailwind's `neutral` scale, not the bluish
+  `slate`) with color reserved for status/type badges and primary actions, closer to
+  Notion/Claude/OpenAI than a typical "bright gradient + saturated dark mode" admin UI.
 
 `web/` reads and writes the exact same `data/` files as the MCP server — a work item
 created via `/add-to-work` shows up on the board on refresh, and a card dragged on the

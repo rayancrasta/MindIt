@@ -9,10 +9,10 @@ import { EnvironmentBadge } from '../components/EnvironmentBadge';
 const TYPE_LABELS: Record<ItemType, string> = { feature: 'Features', story: 'Stories', task: 'Tasks', bug: 'Bugs' };
 const TYPES: ItemType[] = ['feature', 'story', 'task', 'bug'];
 const TYPE_ACCENT: Record<ItemType, string> = {
-  feature: 'before:bg-purple-500',
-  story: 'before:bg-sky-500',
-  task: 'before:bg-amber-500',
-  bug: 'before:bg-red-500',
+  feature: 'before:bg-purple-500 dark:before:bg-purple-400/70',
+  story: 'before:bg-sky-500 dark:before:bg-sky-400/70',
+  task: 'before:bg-amber-500 dark:before:bg-amber-400/70',
+  bug: 'before:bg-red-500 dark:before:bg-red-400/70',
 };
 
 export function Dashboard() {
@@ -30,7 +30,7 @@ export function Dashboard() {
   });
 
   if (!project) {
-    return <p className="text-slate-500">Pick a project to see its dashboard, or create one from the Backlog page.</p>;
+    return <p className="text-neutral-500">Pick a project to see its dashboard, or create one from the Backlog page.</p>;
   }
 
   const counts = statusQ.data;
@@ -46,11 +46,11 @@ export function Dashboard() {
             return (
               <div
                 key={t}
-                className={`relative overflow-hidden rounded-xl border border-slate-200 bg-white p-3 pt-4 shadow-sm transition-shadow before:absolute before:inset-x-0 before:top-0 before:h-1 hover:shadow-md dark:border-slate-800 dark:bg-slate-900 ${TYPE_ACCENT[t]}`}
+                className={`relative overflow-hidden rounded-xl border border-neutral-200 bg-white p-3 pt-4 shadow-sm transition-shadow before:absolute before:inset-x-0 before:top-0 before:h-1 hover:shadow-md dark:border-neutral-700 dark:bg-neutral-800 ${TYPE_ACCENT[t]}`}
               >
                 <div className="mb-2 flex items-baseline justify-between">
-                  <h3 className="text-sm font-semibold text-slate-600 dark:text-slate-300">{TYPE_LABELS[t]}</h3>
-                  <span className="text-lg font-semibold tabular-nums text-slate-400 dark:text-slate-500">{total}</span>
+                  <h3 className="text-sm font-semibold text-neutral-600 dark:text-neutral-300">{TYPE_LABELS[t]}</h3>
+                  <span className="text-lg font-semibold tabular-nums text-neutral-400 dark:text-neutral-500">{total}</span>
                 </div>
                 <ul className="space-y-1">
                   {ITEM_STATUSES.map((s) => (
@@ -82,19 +82,19 @@ export function Dashboard() {
         <section>
           <h2 className="mb-2 text-lg font-semibold tracking-tight">Last session</h2>
           <div className="card p-3 text-sm">
-            <p className="mb-2 text-xs text-slate-400">{new Date(resume.lastSession.timestamp).toLocaleString()}</p>
+            <p className="mb-2 text-xs text-neutral-400">{new Date(resume.lastSession.timestamp).toLocaleString()}</p>
             <p className="mb-1">
-              <span className="font-medium text-slate-600 dark:text-slate-300">Done:</span> {resume.lastSession.done}
+              <span className="font-medium text-neutral-600 dark:text-neutral-300">Done:</span> {resume.lastSession.done}
             </p>
             {resume.lastSession.blockers && (
               <p className="mb-1">
-                <span className="font-medium text-slate-600 dark:text-slate-300">Blockers:</span>{' '}
+                <span className="font-medium text-neutral-600 dark:text-neutral-300">Blockers:</span>{' '}
                 {resume.lastSession.blockers}
               </p>
             )}
             {resume.lastSession.next && (
               <p>
-                <span className="font-medium text-slate-600 dark:text-slate-300">Next:</span> {resume.lastSession.next}
+                <span className="font-medium text-neutral-600 dark:text-neutral-300">Next:</span> {resume.lastSession.next}
               </p>
             )}
           </div>
@@ -106,16 +106,16 @@ export function Dashboard() {
           <h2 className="mb-2 text-lg font-semibold tracking-tight">Last deployment</h2>
           <div className="card p-3 text-sm">
             <div className="mb-2 flex flex-wrap items-center gap-2">
-              <code className="rounded bg-slate-100 px-1.5 py-0.5 text-xs font-medium dark:bg-slate-800">
+              <code className="rounded bg-neutral-100 px-1.5 py-0.5 text-xs font-medium dark:bg-neutral-700">
                 {resume.lastDeployment.commitHash}
               </code>
               <EnvironmentBadge environment={resume.lastDeployment.environment} />
               <DeploymentStatusBadge status={resume.lastDeployment.status} />
-              <span className="ml-auto text-xs text-slate-400">
+              <span className="ml-auto text-xs text-neutral-400">
                 {new Date(resume.lastDeployment.timestamp).toLocaleString()}
               </span>
             </div>
-            <p className="text-xs text-slate-400">by {resume.lastDeployment.deployedBy}</p>
+            <p className="text-xs text-neutral-400">by {resume.lastDeployment.deployedBy}</p>
           </div>
         </section>
       )}
@@ -126,11 +126,11 @@ export function Dashboard() {
 function PendingList({ title, items }: { title: string; items: Item[] }) {
   return (
     <div className="card p-3 transition-shadow hover:shadow-md">
-      <h3 className="mb-2 text-sm font-semibold text-slate-600 dark:text-slate-300">
-        {title} <span className="font-normal text-slate-400">({items.length})</span>
+      <h3 className="mb-2 text-sm font-semibold text-neutral-600 dark:text-neutral-300">
+        {title} <span className="font-normal text-neutral-400">({items.length})</span>
       </h3>
       {items.length === 0 ? (
-        <p className="text-sm text-slate-400">Nothing pending.</p>
+        <p className="text-sm text-neutral-400">Nothing pending.</p>
       ) : (
         <ul className="space-y-1">
           {items.slice(0, 6).map((i) => (

@@ -21,7 +21,7 @@ export function Board() {
   const bugsQ = useQuery({ queryKey: ['bugs', project], queryFn: () => api.bugs.list(project), enabled: !!project });
 
   if (!project) {
-    return <p className="text-slate-500">Pick a project to see its board.</p>;
+    return <p className="text-neutral-500">Pick a project to see its board.</p>;
   }
 
   const features = featuresQ.data ?? [];
@@ -85,11 +85,13 @@ export function Board() {
     <div>
       <div className="mb-4 flex flex-wrap items-center gap-3">
         <h2 className="text-lg font-semibold tracking-tight">Board — {project}</h2>
-        <div className="flex overflow-hidden rounded-full border border-slate-300 bg-white p-0.5 text-sm dark:border-slate-700 dark:bg-slate-900">
+        <div className="flex overflow-hidden rounded-full border border-neutral-300 bg-white p-0.5 text-sm dark:border-neutral-600 dark:bg-neutral-800">
           <button
             onClick={() => setMode('stories')}
             className={`rounded-full px-3 py-1 font-medium transition-colors ${
-              mode === 'stories' ? 'bg-blue-500 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800'
+              mode === 'stories'
+                ? 'bg-blue-600 text-white shadow-sm dark:bg-blue-500'
+                : 'text-neutral-600 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-700'
             }`}
           >
             Stories
@@ -97,7 +99,9 @@ export function Board() {
           <button
             onClick={() => setMode('tasks')}
             className={`rounded-full px-3 py-1 font-medium transition-colors ${
-              mode === 'tasks' ? 'bg-blue-500 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800'
+              mode === 'tasks'
+                ? 'bg-blue-600 text-white shadow-sm dark:bg-blue-500'
+                : 'text-neutral-600 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-700'
             }`}
           >
             Tasks &amp; Bugs
@@ -142,7 +146,7 @@ export function Board() {
             <div className="mt-6">
               <button
                 onClick={() => setShowCompleted((v) => !v)}
-                className="flex items-center gap-1.5 text-sm font-semibold text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white"
+                className="flex items-center gap-1.5 text-sm font-semibold text-neutral-600 hover:text-neutral-900 dark:text-neutral-300 dark:hover:text-neutral-100"
                 aria-expanded={showCompleted}
               >
                 <svg
@@ -175,7 +179,7 @@ export function Board() {
           onToggleItem={toggleChildDone}
         />
       ) : (
-        <p className="text-slate-500">Pick a story above to see its task/bug board.</p>
+        <p className="text-neutral-500">Pick a story above to see its task/bug board.</p>
       )}
 
       {createModal && (

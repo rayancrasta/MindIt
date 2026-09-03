@@ -46,17 +46,17 @@ export function LogDeploymentModal({ project, onClose, onCreated }: Props) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-neutral-950/50 p-4 backdrop-blur-sm"
       onClick={onClose}
     >
       <form
         onClick={(e) => e.stopPropagation()}
         onSubmit={submit}
-        className="w-full max-w-md rounded-2xl bg-white p-5 shadow-2xl ring-1 ring-black/5 dark:bg-slate-900 dark:ring-white/10"
+        className="w-full max-w-md rounded-2xl bg-white p-5 shadow-2xl ring-1 ring-black/5 dark:bg-neutral-800 dark:ring-white/10"
       >
         <h3 className="mb-4 text-base font-semibold">Log deployment</h3>
 
-        <label className="mb-1 block text-sm font-medium text-slate-600 dark:text-slate-300">Commit hash</label>
+        <label className="mb-1 block text-sm font-medium text-neutral-600 dark:text-neutral-300">Commit hash</label>
         <input
           autoFocus
           value={commitHash}
@@ -65,7 +65,7 @@ export function LogDeploymentModal({ project, onClose, onCreated }: Props) {
           className="input mb-3 font-mono"
         />
 
-        <label className="mb-1 block text-sm font-medium text-slate-600 dark:text-slate-300">
+        <label className="mb-1 block text-sm font-medium text-neutral-600 dark:text-neutral-300">
           Environment (optional)
         </label>
         <input
@@ -81,7 +81,7 @@ export function LogDeploymentModal({ project, onClose, onCreated }: Props) {
           ))}
         </datalist>
 
-        <label className="mb-1 block text-sm font-medium text-slate-600 dark:text-slate-300">Status</label>
+        <label className="mb-1 block text-sm font-medium text-neutral-600 dark:text-neutral-300">Status</label>
         <select
           aria-label="Deployment status"
           value={status}
@@ -95,7 +95,7 @@ export function LogDeploymentModal({ project, onClose, onCreated }: Props) {
           ))}
         </select>
 
-        <label className="mb-1 block text-sm font-medium text-slate-600 dark:text-slate-300">Notes (optional)</label>
+        <label className="mb-1 block text-sm font-medium text-neutral-600 dark:text-neutral-300">Notes (optional)</label>
         <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} className="input mb-3 resize-y" />
 
         {error && <p className="mb-2 text-sm text-red-600">{error}</p>}

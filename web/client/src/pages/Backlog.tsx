@@ -29,7 +29,7 @@ export function Backlog() {
   const bugsQ = useQuery({ queryKey: ['bugs', project], queryFn: () => api.bugs.list(project), enabled: !!project });
 
   if (!project) {
-    return <p className="text-slate-500">Use "+ Project" in the header to start your first project.</p>;
+    return <p className="text-neutral-500">Use "+ Project" in the header to start your first project.</p>;
   }
 
   const features = featuresQ.data ?? [];
@@ -65,8 +65,8 @@ export function Backlog() {
         </button>
       </div>
 
-      <div className="card divide-y divide-slate-100 overflow-hidden dark:divide-slate-800">
-        {features.length === 0 && <p className="p-4 text-sm text-slate-400">No features yet.</p>}
+      <div className="card divide-y divide-neutral-100 overflow-hidden dark:divide-neutral-700">
+        {features.length === 0 && <p className="p-4 text-sm text-neutral-400">No features yet.</p>}
         {activeFeatures.map((f) => (
           <FeatureRow
             key={f.id}
@@ -88,7 +88,7 @@ export function Backlog() {
         <div className="mt-4">
           <button
             onClick={() => setShowCompletedFeatures((v) => !v)}
-            className="flex items-center gap-1.5 text-sm font-semibold text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
+            className="flex items-center gap-1.5 text-sm font-semibold text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-neutral-100"
             aria-expanded={showCompletedFeatures}
           >
             <span
@@ -100,7 +100,7 @@ export function Backlog() {
             <span>Show Completed ({completedFeatures.length})</span>
           </button>
           {showCompletedFeatures && (
-            <div className="card mt-2 divide-y divide-slate-100 overflow-hidden dark:divide-slate-800">
+            <div className="card mt-2 divide-y divide-neutral-100 overflow-hidden dark:divide-neutral-700">
               {completedFeatures.map((f) => (
                 <FeatureRow
                   key={f.id}
@@ -166,10 +166,10 @@ function FeatureRow({
   const stats = getFeatureStoryStats(feature.id, stories);
   return (
     <div>
-      <div className="flex items-center gap-2 p-3 transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/50">
+      <div className="flex items-center gap-2 p-3 transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-700/50">
         <button
           onClick={onToggleOpen}
-          className="flex w-4 shrink-0 items-center justify-center text-slate-400 transition-transform"
+          className="flex w-4 shrink-0 items-center justify-center text-neutral-400 transition-transform"
           style={{ transform: isOpen ? 'rotate(90deg)' : undefined }}
         >
           ▸
@@ -179,7 +179,7 @@ function FeatureRow({
           {feature.title}
         </Link>
         {stats.total > 0 && (
-          <span className="text-xs text-slate-400">
+          <span className="text-xs text-neutral-400">
             {stats.completed}/{stats.total}
           </span>
         )}
@@ -189,8 +189,8 @@ function FeatureRow({
         </button>
       </div>
       {isOpen && (
-        <div className="ml-8 border-t border-slate-100 dark:border-slate-800">
-          {fStories.length === 0 && <p className="p-3 text-sm text-slate-400">No stories yet.</p>}
+        <div className="ml-8 border-t border-neutral-100 dark:border-neutral-700">
+          {fStories.length === 0 && <p className="p-3 text-sm text-neutral-400">No stories yet.</p>}
           {fStories.map((s) => {
             const sTasks = tasks.filter((t) => t.story === s.id);
             const sBugs = bugs.filter((b) => b.story === s.id);
@@ -198,11 +198,11 @@ function FeatureRow({
             const sDone = sChildren.filter((c) => isDone(c.status)).length;
             const sOpen = openStories.has(s.id);
             return (
-              <div key={s.id} className="border-t border-slate-100 first:border-t-0 dark:border-slate-800">
-                <div className="flex items-center gap-2 p-3 transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/50">
+              <div key={s.id} className="border-t border-neutral-100 first:border-t-0 dark:border-neutral-700">
+                <div className="flex items-center gap-2 p-3 transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-700/50">
                   <button
                     onClick={() => onToggleStory(s.id)}
-                    className="flex w-4 shrink-0 items-center justify-center text-slate-400 transition-transform"
+                    className="flex w-4 shrink-0 items-center justify-center text-neutral-400 transition-transform"
                     style={{ transform: sOpen ? 'rotate(90deg)' : undefined }}
                   >
                     ▸
@@ -212,7 +212,7 @@ function FeatureRow({
                     {s.title}
                   </Link>
                   {sChildren.length > 0 && (
-                    <span className="text-xs text-slate-400">
+                    <span className="text-xs text-neutral-400">
                       {sDone}/{sChildren.length}
                     </span>
                   )}
@@ -225,20 +225,20 @@ function FeatureRow({
                   </button>
                 </div>
                 {sOpen && (
-                  <div className="ml-8 space-y-1 border-t border-slate-100 p-2 dark:border-slate-800">
+                  <div className="ml-8 space-y-1 border-t border-neutral-100 p-2 dark:border-neutral-700">
                     {[...sTasks, ...sBugs].length === 0 && (
-                      <p className="p-1 text-sm text-slate-400">No tasks or bugs yet.</p>
+                      <p className="p-1 text-sm text-neutral-400">No tasks or bugs yet.</p>
                     )}
                     {sTasks.map((t) => (
                       <div
                         key={t.id}
-                        className="flex items-center gap-2 rounded-lg p-1.5 transition-colors hover:bg-slate-50 dark:hover:bg-slate-800"
+                        className="flex items-center gap-2 rounded-lg p-1.5 transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-700"
                       >
                         <TaskCheckbox checked={isDone(t.status)} onToggle={() => onToggleDone(t)} />
                         <ItemTypeBadge type="task" id={t.id} />
                         <Link
                           to={`/item/${t.id}`}
-                          className={`flex-1 truncate hover:underline ${isDone(t.status) ? 'text-slate-400 line-through' : ''}`}
+                          className={`flex-1 truncate hover:underline ${isDone(t.status) ? 'text-neutral-400 line-through' : ''}`}
                         >
                           {t.title}
                         </Link>
@@ -248,13 +248,13 @@ function FeatureRow({
                     {sBugs.map((b) => (
                       <div
                         key={b.id}
-                        className="flex items-center gap-2 rounded-lg p-1.5 transition-colors hover:bg-slate-50 dark:hover:bg-slate-800"
+                        className="flex items-center gap-2 rounded-lg p-1.5 transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-700"
                       >
                         <TaskCheckbox checked={isDone(b.status)} onToggle={() => onToggleDone(b)} />
                         <ItemTypeBadge type="bug" id={b.id} />
                         <Link
                           to={`/item/${b.id}`}
-                          className={`flex-1 truncate hover:underline ${isDone(b.status) ? 'text-slate-400 line-through' : ''}`}
+                          className={`flex-1 truncate hover:underline ${isDone(b.status) ? 'text-neutral-400 line-through' : ''}`}
                         >
                           {b.title}
                         </Link>
@@ -284,20 +284,20 @@ function StandaloneBugs({
   return (
     <div className="mt-4">
       <div className="mb-2 flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-slate-500">Standalone bugs</h3>
+        <h3 className="text-sm font-semibold text-neutral-500">Standalone bugs</h3>
         <button onClick={onCreate} className="btn-link">
           + bug
         </button>
       </div>
-      <div className="card divide-y divide-slate-100 overflow-hidden dark:divide-slate-800">
-        {bugs.length === 0 && <p className="p-3 text-sm text-slate-400">None.</p>}
+      <div className="card divide-y divide-neutral-100 overflow-hidden dark:divide-neutral-700">
+        {bugs.length === 0 && <p className="p-3 text-sm text-neutral-400">None.</p>}
         {bugs.map((b) => (
-          <div key={b.id} className="flex items-center gap-2 p-2 transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/50">
+          <div key={b.id} className="flex items-center gap-2 p-2 transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-700/50">
             <TaskCheckbox checked={isDone(b.status)} onToggle={async () => onToggle(b)} />
             <ItemTypeBadge type="bug" id={b.id} />
             <Link
               to={`/item/${b.id}`}
-              className={`flex-1 truncate hover:underline ${isDone(b.status) ? 'text-slate-400 line-through' : ''}`}
+              className={`flex-1 truncate hover:underline ${isDone(b.status) ? 'text-neutral-400 line-through' : ''}`}
             >
               {b.title}
             </Link>
