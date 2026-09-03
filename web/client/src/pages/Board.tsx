@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { api, isDone, type Bug, type Item, type ItemStatus, type ItemType, type Task } from '../api';
+import { api, getFeatureStoryStats, isDone, type Bug, type Item, type ItemStatus, type ItemType, type Task } from '../api';
 import { useProject } from '../context/ProjectContext';
 import { KanbanBoard, type Lane } from '../components/KanbanBoard';
 import { CreateItemModal } from '../components/CreateItemModal';
@@ -13,6 +13,7 @@ export function Board() {
   const [mode, setMode] = useState<BoardMode>('stories');
   const [selectedStory, setSelectedStory] = useState<string | null>(null);
   const [createModal, setCreateModal] = useState<null | { type: ItemType; parent?: string }>(null);
+  const [showCompleted, setShowCompleted] = useState(false);
 
   const featuresQ = useQuery({ queryKey: ['features', project], queryFn: () => api.features.list(project), enabled: !!project });
   const storiesQ = useQuery({ queryKey: ['stories', project], queryFn: () => api.stories.list(project), enabled: !!project });
@@ -65,14 +66,20 @@ export function Board() {
     childrenByParent[s.id] = [...tasks.filter((t) => t.story === s.id), ...bugs.filter((b) => b.story === s.id)];
   }
 
+  const activeFeatures = features.filter((f) => !getFeatureStoryStats(f.id, stories).complete);
+  const completedFeatures = features.filter((f) => getFeatureStoryStats(f.id, stories).complete);
+
+  const featureLane = (f: (typeof features)[number]): Lane => ({
+    key: f.id,
+    label: `${f.title} (#${f.id})`,
+    items: stories.filter((s) => s.feature === f.id) as Item[],
+  });
+
   const storyLanes: Lane[] = [
-    ...features.map((f) => ({
-      key: f.id,
-      label: `${f.title} (#${f.id})`,
-      items: stories.filter((s) => s.feature === f.id) as Item[],
-    })),
+    ...activeFeatures.map(featureLane),
     ...(orphanStories.length ? [{ key: '__orphan', label: 'Other', items: orphanStories as Item[], addable: false }] : []),
   ];
+  const completedLanes: Lane[] = completedFeatures.map(featureLane);
 
   return (
     <div>
@@ -123,13 +130,44 @@ export function Board() {
       </div>
 
       {mode === 'stories' ? (
-        <KanbanBoard
-          lanes={storyLanes}
-          onDrop={(item, status) => handleDrop(item, status, [['stories', project]])}
-          onAddToLane={(featureId) => setCreateModal({ type: 'story', parent: featureId })}
-          childrenByParent={childrenByParent}
-          onToggleChild={toggleChildDone}
-        />
+        <>
+          <KanbanBoard
+            lanes={storyLanes}
+            onDrop={(item, status) => handleDrop(item, status, [['stories', project]])}
+            onAddToLane={(featureId) => setCreateModal({ type: 'story', parent: featureId })}
+            childrenByParent={childrenByParent}
+            onToggleChild={toggleChildDone}
+          />
+          {completedFeatures.length > 0 && (
+            <div className="mt-6">
+              <button
+                onClick={() => setShowCompleted((v) => !v)}
+                className="flex items-center gap-1.5 text-sm font-semibold text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white"
+                aria-expanded={showCompleted}
+              >
+                <svg
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                  className={`h-3.5 w-3.5 shrink-0 transition-transform ${showCompleted ? '' : '-rotate-90'}`}
+                >
+                  <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clipRule="evenodd" />
+                </svg>
+                <span>Show Completed ({completedFeatures.length})</span>
+              </button>
+              {showCompleted && (
+                <div className="mt-3">
+                  <KanbanBoard
+                    lanes={completedLanes}
+                    onDrop={(item, status) => handleDrop(item, status, [['stories', project]])}
+                    onAddToLane={(featureId) => setCreateModal({ type: 'story', parent: featureId })}
+                    childrenByParent={childrenByParent}
+                    onToggleChild={toggleChildDone}
+                  />
+                </div>
+              )}
+            </div>
+          )}
+        </>
       ) : story ? (
         <KanbanBoard
           lanes={[{ key: story.id, label: `${story.title} (#${story.id})`, items: scopedItems, addable: false, defaultCollapsed: false }]}

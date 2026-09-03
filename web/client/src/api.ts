@@ -46,6 +46,19 @@ export interface Story extends BaseItem {
   links?: string[];
 }
 
+export interface FeatureStoryStats {
+  total: number;
+  completed: number;
+  complete: boolean;
+}
+
+/** A feature is complete when it has at least one story and all of them are done. */
+export function getFeatureStoryStats(featureId: string, stories: Story[]): FeatureStoryStats {
+  const own = stories.filter((s) => s.feature === featureId);
+  const completed = own.filter((s) => isDone(s.status)).length;
+  return { total: own.length, completed, complete: own.length > 0 && completed === own.length };
+}
+
 export interface Task extends BaseItem {
   type: 'task';
   story: string;

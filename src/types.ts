@@ -2,6 +2,11 @@ export type ItemStatus = 'new' | 'in_progress' | 'testing' | 'resolved' | 'close
 
 export const ITEM_STATUSES: ItemStatus[] = ['new', 'in_progress', 'testing', 'resolved', 'closed'];
 
+/** Resolved and closed both read as "done" for completion/checklist purposes. */
+export function isDoneStatus(status: ItemStatus): boolean {
+  return status === 'resolved' || status === 'closed';
+}
+
 export type ItemType = 'feature' | 'story' | 'task' | 'bug';
 
 export const ITEM_TYPES: ItemType[] = ['feature', 'story', 'task', 'bug'];

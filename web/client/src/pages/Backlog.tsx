@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { api, isDone, type Bug, type ItemType, type Task } from '../api';
+import { api, getFeatureStoryStats, isDone, type Bug, type Feature, type ItemType, type Story, type Task } from '../api';
 import { useProject } from '../context/ProjectContext';
 import { StatusBadge } from '../components/StatusBadge';
 import { ItemTypeBadge } from '../components/ItemTypeBadge';
@@ -20,6 +20,7 @@ export function Backlog() {
   const qc = useQueryClient();
   const [openFeatures, setOpenFeatures] = useState<Set<string>>(new Set());
   const [openStories, setOpenStories] = useState<Set<string>>(new Set());
+  const [showCompletedFeatures, setShowCompletedFeatures] = useState(false);
   const [createModal, setCreateModal] = useState<null | { type: ItemType; parent?: string }>(null);
 
   const featuresQ = useQuery({ queryKey: ['features', project], queryFn: () => api.features.list(project), enabled: !!project });
@@ -52,6 +53,9 @@ export function Backlog() {
     invalidateAll();
   }
 
+  const activeFeatures = features.filter((f) => !getFeatureStoryStats(f.id, stories).complete);
+  const completedFeatures = features.filter((f) => getFeatureStoryStats(f.id, stories).complete);
+
   return (
     <div>
       <div className="mb-4 flex items-center justify-between">
@@ -63,112 +67,59 @@ export function Backlog() {
 
       <div className="card divide-y divide-slate-100 overflow-hidden dark:divide-slate-800">
         {features.length === 0 && <p className="p-4 text-sm text-slate-400">No features yet.</p>}
-        {features.map((f) => {
-          const fStories = stories.filter((s) => s.feature === f.id);
-          const isOpen = openFeatures.has(f.id);
-          return (
-            <div key={f.id}>
-              <div className="flex items-center gap-2 p-3 transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/50">
-                <button
-                  onClick={() => setOpenFeatures((s) => toggle(s, f.id))}
-                  className="flex w-4 shrink-0 items-center justify-center text-slate-400 transition-transform"
-                  style={{ transform: isOpen ? 'rotate(90deg)' : undefined }}
-                >
-                  ▸
-                </button>
-                <ItemTypeBadge type="feature" id={f.id} />
-                <Link to={`/item/${f.id}`} className="flex-1 truncate font-medium hover:underline">
-                  {f.title}
-                </Link>
-                <StatusBadge status={f.status} />
-                <button onClick={() => setCreateModal({ type: 'story', parent: f.id })} className="btn-link">
-                  + story
-                </button>
-              </div>
-              {isOpen && (
-                <div className="ml-8 border-t border-slate-100 dark:border-slate-800">
-                  {fStories.length === 0 && <p className="p-3 text-sm text-slate-400">No stories yet.</p>}
-                  {fStories.map((s) => {
-                    const sTasks = tasks.filter((t) => t.story === s.id);
-                    const sBugs = bugs.filter((b) => b.story === s.id);
-                    const sChildren: (Task | Bug)[] = [...sTasks, ...sBugs];
-                    const sDone = sChildren.filter((c) => isDone(c.status)).length;
-                    const sOpen = openStories.has(s.id);
-                    return (
-                      <div key={s.id} className="border-t border-slate-100 first:border-t-0 dark:border-slate-800">
-                        <div className="flex items-center gap-2 p-3 transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/50">
-                          <button
-                            onClick={() => setOpenStories((st) => toggle(st, s.id))}
-                            className="flex w-4 shrink-0 items-center justify-center text-slate-400 transition-transform"
-                            style={{ transform: sOpen ? 'rotate(90deg)' : undefined }}
-                          >
-                            ▸
-                          </button>
-                          <ItemTypeBadge type="story" id={s.id} />
-                          <Link to={`/item/${s.id}`} className="flex-1 truncate hover:underline">
-                            {s.title}
-                          </Link>
-                          {sChildren.length > 0 && (
-                            <span className="text-xs text-slate-400">
-                              {sDone}/{sChildren.length}
-                            </span>
-                          )}
-                          <StatusBadge status={s.status} />
-                          <button onClick={() => setCreateModal({ type: 'task', parent: s.id })} className="btn-link">
-                            + task
-                          </button>
-                          <button onClick={() => setCreateModal({ type: 'bug', parent: s.id })} className="btn-link">
-                            + bug
-                          </button>
-                        </div>
-                        {sOpen && (
-                          <div className="ml-8 space-y-1 border-t border-slate-100 p-2 dark:border-slate-800">
-                            {[...sTasks, ...sBugs].length === 0 && (
-                              <p className="p-1 text-sm text-slate-400">No tasks or bugs yet.</p>
-                            )}
-                            {sTasks.map((t) => (
-                              <div
-                                key={t.id}
-                                className="flex items-center gap-2 rounded-lg p-1.5 transition-colors hover:bg-slate-50 dark:hover:bg-slate-800"
-                              >
-                                <TaskCheckbox checked={isDone(t.status)} onToggle={() => toggleDone(t)} />
-                                <ItemTypeBadge type="task" id={t.id} />
-                                <Link
-                                  to={`/item/${t.id}`}
-                                  className={`flex-1 truncate hover:underline ${isDone(t.status) ? 'text-slate-400 line-through' : ''}`}
-                                >
-                                  {t.title}
-                                </Link>
-                                <StatusBadge status={t.status} />
-                              </div>
-                            ))}
-                            {sBugs.map((b) => (
-                              <div
-                                key={b.id}
-                                className="flex items-center gap-2 rounded-lg p-1.5 transition-colors hover:bg-slate-50 dark:hover:bg-slate-800"
-                              >
-                                <TaskCheckbox checked={isDone(b.status)} onToggle={() => toggleDone(b)} />
-                                <ItemTypeBadge type="bug" id={b.id} />
-                                <Link
-                                  to={`/item/${b.id}`}
-                                  className={`flex-1 truncate hover:underline ${isDone(b.status) ? 'text-slate-400 line-through' : ''}`}
-                                >
-                                  {b.title}
-                                </Link>
-                                <StatusBadge status={b.status} />
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          );
-        })}
+        {activeFeatures.map((f) => (
+          <FeatureRow
+            key={f.id}
+            feature={f}
+            stories={stories}
+            tasks={tasks}
+            bugs={bugs}
+            isOpen={openFeatures.has(f.id)}
+            onToggleOpen={() => setOpenFeatures((s) => toggle(s, f.id))}
+            openStories={openStories}
+            onToggleStory={(id) => setOpenStories((s) => toggle(s, id))}
+            onToggleDone={toggleDone}
+            onCreate={setCreateModal}
+          />
+        ))}
       </div>
+
+      {completedFeatures.length > 0 && (
+        <div className="mt-4">
+          <button
+            onClick={() => setShowCompletedFeatures((v) => !v)}
+            className="flex items-center gap-1.5 text-sm font-semibold text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
+            aria-expanded={showCompletedFeatures}
+          >
+            <span
+              className="flex w-4 shrink-0 items-center justify-center transition-transform"
+              style={{ transform: showCompletedFeatures ? 'rotate(90deg)' : undefined }}
+            >
+              ▸
+            </span>
+            <span>Show Completed ({completedFeatures.length})</span>
+          </button>
+          {showCompletedFeatures && (
+            <div className="card mt-2 divide-y divide-slate-100 overflow-hidden dark:divide-slate-800">
+              {completedFeatures.map((f) => (
+                <FeatureRow
+                  key={f.id}
+                  feature={f}
+                  stories={stories}
+                  tasks={tasks}
+                  bugs={bugs}
+                  isOpen={openFeatures.has(f.id)}
+                  onToggleOpen={() => setOpenFeatures((s) => toggle(s, f.id))}
+                  openStories={openStories}
+                  onToggleStory={(id) => setOpenStories((s) => toggle(s, id))}
+                  onToggleDone={toggleDone}
+                  onCreate={setCreateModal}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       <StandaloneBugs bugs={bugs.filter((b) => !b.story)} onToggle={toggleDone} onCreate={() => setCreateModal({ type: 'bug' })} />
 
@@ -183,6 +134,139 @@ export function Backlog() {
             invalidateAll();
           }}
         />
+      )}
+    </div>
+  );
+}
+
+function FeatureRow({
+  feature,
+  stories,
+  tasks,
+  bugs,
+  isOpen,
+  onToggleOpen,
+  openStories,
+  onToggleStory,
+  onToggleDone,
+  onCreate,
+}: {
+  feature: Feature;
+  stories: Story[];
+  tasks: Task[];
+  bugs: Bug[];
+  isOpen: boolean;
+  onToggleOpen: () => void;
+  openStories: Set<string>;
+  onToggleStory: (id: string) => void;
+  onToggleDone: (item: Task | Bug) => Promise<void>;
+  onCreate: (modal: { type: ItemType; parent?: string }) => void;
+}) {
+  const fStories = stories.filter((s) => s.feature === feature.id);
+  const stats = getFeatureStoryStats(feature.id, stories);
+  return (
+    <div>
+      <div className="flex items-center gap-2 p-3 transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/50">
+        <button
+          onClick={onToggleOpen}
+          className="flex w-4 shrink-0 items-center justify-center text-slate-400 transition-transform"
+          style={{ transform: isOpen ? 'rotate(90deg)' : undefined }}
+        >
+          ▸
+        </button>
+        <ItemTypeBadge type="feature" id={feature.id} />
+        <Link to={`/item/${feature.id}`} className="flex-1 truncate font-medium hover:underline">
+          {feature.title}
+        </Link>
+        {stats.total > 0 && (
+          <span className="text-xs text-slate-400">
+            {stats.completed}/{stats.total}
+          </span>
+        )}
+        <StatusBadge status={feature.status} />
+        <button onClick={() => onCreate({ type: 'story', parent: feature.id })} className="btn-link">
+          + story
+        </button>
+      </div>
+      {isOpen && (
+        <div className="ml-8 border-t border-slate-100 dark:border-slate-800">
+          {fStories.length === 0 && <p className="p-3 text-sm text-slate-400">No stories yet.</p>}
+          {fStories.map((s) => {
+            const sTasks = tasks.filter((t) => t.story === s.id);
+            const sBugs = bugs.filter((b) => b.story === s.id);
+            const sChildren: (Task | Bug)[] = [...sTasks, ...sBugs];
+            const sDone = sChildren.filter((c) => isDone(c.status)).length;
+            const sOpen = openStories.has(s.id);
+            return (
+              <div key={s.id} className="border-t border-slate-100 first:border-t-0 dark:border-slate-800">
+                <div className="flex items-center gap-2 p-3 transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                  <button
+                    onClick={() => onToggleStory(s.id)}
+                    className="flex w-4 shrink-0 items-center justify-center text-slate-400 transition-transform"
+                    style={{ transform: sOpen ? 'rotate(90deg)' : undefined }}
+                  >
+                    ▸
+                  </button>
+                  <ItemTypeBadge type="story" id={s.id} />
+                  <Link to={`/item/${s.id}`} className="flex-1 truncate hover:underline">
+                    {s.title}
+                  </Link>
+                  {sChildren.length > 0 && (
+                    <span className="text-xs text-slate-400">
+                      {sDone}/{sChildren.length}
+                    </span>
+                  )}
+                  <StatusBadge status={s.status} />
+                  <button onClick={() => onCreate({ type: 'task', parent: s.id })} className="btn-link">
+                    + task
+                  </button>
+                  <button onClick={() => onCreate({ type: 'bug', parent: s.id })} className="btn-link">
+                    + bug
+                  </button>
+                </div>
+                {sOpen && (
+                  <div className="ml-8 space-y-1 border-t border-slate-100 p-2 dark:border-slate-800">
+                    {[...sTasks, ...sBugs].length === 0 && (
+                      <p className="p-1 text-sm text-slate-400">No tasks or bugs yet.</p>
+                    )}
+                    {sTasks.map((t) => (
+                      <div
+                        key={t.id}
+                        className="flex items-center gap-2 rounded-lg p-1.5 transition-colors hover:bg-slate-50 dark:hover:bg-slate-800"
+                      >
+                        <TaskCheckbox checked={isDone(t.status)} onToggle={() => onToggleDone(t)} />
+                        <ItemTypeBadge type="task" id={t.id} />
+                        <Link
+                          to={`/item/${t.id}`}
+                          className={`flex-1 truncate hover:underline ${isDone(t.status) ? 'text-slate-400 line-through' : ''}`}
+                        >
+                          {t.title}
+                        </Link>
+                        <StatusBadge status={t.status} />
+                      </div>
+                    ))}
+                    {sBugs.map((b) => (
+                      <div
+                        key={b.id}
+                        className="flex items-center gap-2 rounded-lg p-1.5 transition-colors hover:bg-slate-50 dark:hover:bg-slate-800"
+                      >
+                        <TaskCheckbox checked={isDone(b.status)} onToggle={() => onToggleDone(b)} />
+                        <ItemTypeBadge type="bug" id={b.id} />
+                        <Link
+                          to={`/item/${b.id}`}
+                          className={`flex-1 truncate hover:underline ${isDone(b.status) ? 'text-slate-400 line-through' : ''}`}
+                        >
+                          {b.title}
+                        </Link>
+                        <StatusBadge status={b.status} />
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
       )}
     </div>
   );

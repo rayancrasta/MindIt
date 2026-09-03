@@ -55,13 +55,17 @@ server.
   regardless of type or project, mirroring `get_item`.
 - `web/client` — React + Vite + TypeScript + Tailwind, with five views: **Dashboard**
   (status counts + pending work, like `get_status`/`get_resume`), **Backlog** (an
-  expandable Feature → Story → Task/Bug tree, the primary place to create items),
-  **Board** (a real drag-and-drop Kanban — Stories swimlaned by Feature, or a
-  Tasks/Bugs board scoped to one Story — dragging a card between columns updates its
-  status), **Item detail** (full read/edit/delete view, reachable by clicking a
-  card or typing a bare number into the search box), and **Wiki** (`/wiki/<project>/<path>`
-  — a folder/page tree with the same write/preview markdown editor used for Notes and
-  Comments, plus a "Copy link" button for pasting a page into a comment elsewhere).
+  expandable Feature → Story → Task/Bug tree, the primary place to create items — each
+  Feature row shows its `completed/total` Story count), **Board** (a real drag-and-drop
+  Kanban — Stories swimlaned by Feature, or a Tasks/Bugs board scoped to one Story —
+  dragging a card between columns updates its status; each Feature's lane shows the same
+  `completed/total` count even while collapsed), **Item detail** (full read/edit/delete
+  view, reachable by clicking a card or typing a bare number into the search box), and
+  **Wiki** (`/wiki/<project>/<path>` — a folder/page tree with the same write/preview
+  markdown editor used for Notes and Comments, plus a "Copy link" button for pasting a
+  page into a comment elsewhere). On both Backlog and Board, a Feature whose Stories are
+  all done drops into a collapsed "Show Completed" section so the active work stays in
+  view.
 
 `web/` reads and writes the exact same `data/` files as the MCP server — a work item
 created via `/add-to-work` shows up on the board on refresh, and a card dragged on the
@@ -92,6 +96,13 @@ Story ←→ Story   (symmetric "related to" link, no direction)
 
 Statuses (same five across all four item types): `new`, `in_progress`, `testing`,
 `resolved`, `closed`.
+
+A Feature's completion is always *derived*, never stored on the Feature itself: a Story
+counts as done once it's `resolved` or `closed`, and a Feature is complete once it has at
+least one Story and every Story is done (a Feature with zero Stories is never complete).
+`list_features` reports each Feature's `completed/total` Story count and a `[COMPLETE]`
+marker; the web UI shows the same count and groups complete Features under "Show
+Completed" (see Web UI, above).
 
 ## IDs
 

@@ -84,7 +84,7 @@ export function KanbanBoard({ lanes, onDrop, onAddToLane, childrenByParent, onTo
                   </svg>
                   <span>{lane.label}</span>
                   <span className="rounded-full bg-slate-200/80 px-1.5 py-0.5 text-[10px] font-medium text-slate-500 dark:bg-slate-800 dark:text-slate-400">
-                    {lane.items.length}
+                    {lane.items.filter((i) => isDone(i.status)).length}/{lane.items.length}
                   </span>
                 </button>
                 {onAddToLane && lane.addable !== false && (
