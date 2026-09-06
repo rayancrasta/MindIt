@@ -1,7 +1,49 @@
-import { useState } from 'react';
+import { isValidElement, useEffect, useId, useRef, useState } from 'react';
 import ReactMarkdown, { type Components } from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Link } from 'react-router-dom';
+import mermaid from 'mermaid';
+import { useTheme } from '../context/ThemeContext';
+
+function MermaidDiagram({ code }: { code: string }) {
+  const { theme } = useTheme();
+  const id = useId().replace(/:/g, '-');
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: theme === 'dark' ? 'dark' : 'default',
+      securityLevel: 'strict',
+    });
+    mermaid
+      .render(`mermaid-${id}`, code)
+      .then(({ svg }) => {
+        if (!cancelled && containerRef.current) {
+          containerRef.current.innerHTML = svg;
+          setError(null);
+        }
+      })
+      .catch((err: unknown) => {
+        if (!cancelled) setError(err instanceof Error ? err.message : String(err));
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [code, id, theme]);
+
+  if (error) {
+    return (
+      <pre className="mb-2 overflow-x-auto rounded bg-red-50 p-2 text-xs text-red-700 last:mb-0 dark:bg-red-950 dark:text-red-300">
+        Failed to render diagram: {error}
+      </pre>
+    );
+  }
+
+  return <div className="mb-2 overflow-x-auto last:mb-0" ref={containerRef} />;
+}
 
 const markdownComponents: Components = {
   p: (props) => <p className="mb-2 last:mb-0" {...props} />,
@@ -30,14 +72,27 @@ const markdownComponents: Components = {
       {...props}
     />
   ),
-  pre: (props) => (
-    <pre className="mb-2 overflow-x-auto rounded bg-neutral-100 p-2 text-xs last:mb-0 dark:bg-neutral-700" {...props} />
-  ),
-  code: ({ className, ...props }) =>
-    /language-/.test(className ?? '') ? (
-      <code className={className} {...props} />
+  pre: ({ children, ...props }) =>
+    // A mermaid code block is already replaced by <MermaidDiagram/> at this point (children
+    // are rendered before the parent) — skip the code-block chrome and let it render bare.
+    isValidElement(children) && children.type === MermaidDiagram ? (
+      <>{children}</>
     ) : (
-      <code className="rounded bg-neutral-100 px-1 py-0.5 text-[0.85em] dark:bg-neutral-700" {...props} />
+      <pre className="mb-2 overflow-x-auto rounded bg-neutral-100 p-2 text-xs last:mb-0 dark:bg-neutral-700" {...props}>
+        {children}
+      </pre>
+    ),
+  code: ({ className, children, ...props }) =>
+    className === 'language-mermaid' ? (
+      <MermaidDiagram code={String(children).replace(/\n$/, '')} />
+    ) : /language-/.test(className ?? '') ? (
+      <code className={className} {...props}>
+        {children}
+      </code>
+    ) : (
+      <code className="rounded bg-neutral-100 px-1 py-0.5 text-[0.85em] dark:bg-neutral-700" {...props}>
+        {children}
+      </code>
     ),
   h1: (props) => <h4 className="mb-1 text-sm font-semibold" {...props} />,
   h2: (props) => <h4 className="mb-1 text-sm font-semibold" {...props} />,
