@@ -165,7 +165,9 @@ export function Layout({ children }: { children: ReactNode }) {
           })}
         </nav>
       </header>
-      <main className="mx-auto max-w-6xl p-4">{children}</main>
+      <main className={`mx-auto p-4 ${location.pathname.startsWith('/schemas') ? 'max-w-none' : 'max-w-6xl'}`}>
+        {children}
+      </main>
     </div>
   );
 }

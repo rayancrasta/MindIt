@@ -42,6 +42,16 @@ schemasRouter.get('/erd', (req, res) => {
   }
 });
 
+schemasRouter.get('/tables', (req, res) => {
+  const { project } = req.params as { project: string };
+  const folder = typeof req.query.folder === 'string' ? req.query.folder : undefined;
+  try {
+    res.json(listSchemaTablesRecursive(project, folder));
+  } catch (err) {
+    res.status(400).json({ error: err instanceof Error ? err.message : String(err) });
+  }
+});
+
 schemasRouter.get('/table', (req, res) => {
   const { project } = req.params as { project: string };
   const path = pathParam(req);

@@ -364,6 +364,8 @@ export const api = {
       ),
     erd: (project: string, folder?: string) =>
       req<{ mermaid: string }>(`/projects/${encodeURIComponent(project)}/schemas/erd${qs({ folder })}`),
+    tables: (project: string, folder?: string) =>
+      req<SchemaTable[]>(`/projects/${encodeURIComponent(project)}/schemas/tables${qs({ folder })}`),
     table: {
       get: (project: string, path: string) =>
         req<SchemaTable>(`/projects/${encodeURIComponent(project)}/schemas/table${qs({ path })}`),

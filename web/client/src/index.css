@@ -72,3 +72,77 @@ body {
     @apply rounded-xl border border-neutral-200/80 bg-white shadow-sm dark:border-neutral-700 dark:bg-neutral-800;
   }
 }
+
+.schema-flow .react-flow__controls {
+  overflow: hidden;
+  border-radius: 0.5rem;
+  border: 1px solid var(--color-neutral-200);
+  box-shadow: none;
+}
+.dark .schema-flow .react-flow__controls {
+  border-color: var(--color-neutral-700);
+}
+.schema-flow .react-flow__controls-button {
+  border: none;
+  border-bottom: 1px solid var(--color-neutral-200);
+  background: white;
+  color: var(--color-neutral-600);
+}
+.dark .schema-flow .react-flow__controls-button {
+  border-bottom-color: var(--color-neutral-700);
+  background: var(--color-neutral-800);
+  color: var(--color-neutral-300);
+}
+.schema-flow .react-flow__controls-button:hover {
+  background: var(--color-neutral-100);
+}
+.dark .schema-flow .react-flow__controls-button:hover {
+  background: var(--color-neutral-700);
+}
+.schema-flow .react-flow__controls-button svg {
+  fill: currentColor;
+}
+.schema-flow .react-flow__minimap {
+  overflow: hidden;
+  border-radius: 0.5rem;
+  border: 1px solid var(--color-neutral-200);
+}
+.dark .schema-flow .react-flow__minimap {
+  border-color: var(--color-neutral-700);
+}
+.schema-flow .react-flow__edge-textbg {
+  fill: white;
+}
+.dark .schema-flow .react-flow__edge-textbg {
+  fill: var(--color-neutral-800);
+}
+
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-neutral-300) transparent;
+}
+.dark .custom-scrollbar {
+  scrollbar-color: var(--color-neutral-600) transparent;
+}
+.custom-scrollbar::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: var(--color-neutral-300);
+  border-radius: 9999px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+.dark .custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: var(--color-neutral-600);
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-neutral-400);
+}
+.dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-neutral-500);
+}
