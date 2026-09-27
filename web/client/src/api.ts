@@ -301,6 +301,27 @@ export const api = {
         }),
       remove: (project: string, path: string) =>
         req<WikiPage>(`/projects/${encodeURIComponent(project)}/wiki/page${qs({ path })}`, { method: 'DELETE' }),
+      move: (project: string, from: string, to: string) =>
+        req<WikiPage>(`/projects/${encodeURIComponent(project)}/wiki/page/move`, {
+          method: 'POST',
+          body: JSON.stringify({ from, to }),
+        }),
+    },
+    folder: {
+      create: (project: string, path: string) =>
+        req<{ path: string }>(`/projects/${encodeURIComponent(project)}/wiki/folder`, {
+          method: 'POST',
+          body: JSON.stringify({ path }),
+        }),
+      remove: (project: string, path: string) =>
+        req<{ path: string }>(`/projects/${encodeURIComponent(project)}/wiki/folder${qs({ path })}`, {
+          method: 'DELETE',
+        }),
+      move: (project: string, from: string, to: string) =>
+        req<{ path: string }>(`/projects/${encodeURIComponent(project)}/wiki/folder/move`, {
+          method: 'POST',
+          body: JSON.stringify({ from, to }),
+        }),
     },
   },
   deployments: {
