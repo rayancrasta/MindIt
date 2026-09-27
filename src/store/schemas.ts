@@ -142,6 +142,50 @@ export function readSchemaTable(project: string, schemaPath: string): SchemaTabl
   return parseSchemaFile(fs.readFileSync(absPath, 'utf8'), relPath);
 }
 
+export interface CreateSchemaTableInput {
+  path: string;
+  columns?: SchemaColumn[];
+  description?: string;
+  title?: string;
+}
+
+/** Creates several tables in one call. A failure on one entry (e.g. it already exists) doesn't stop the rest. */
+export function createSchemaTables(
+  project: string,
+  tables: CreateSchemaTableInput[]
+): { created: SchemaTable[]; errors: { path: string; message: string }[] } {
+  const created: SchemaTable[] = [];
+  const errors: { path: string; message: string }[] = [];
+  for (const t of tables) {
+    try {
+      created.push(createSchemaTable(project, t.path, t.columns ?? [], t.description ?? '', t.title));
+    } catch (err) {
+      errors.push({ path: t.path, message: (err as Error).message });
+    }
+  }
+  return { created, errors };
+}
+
+/** Adds a column, or replaces the existing one with the same name, without touching any other column or the description. */
+export function setSchemaColumn(project: string, schemaPath: string, column: SchemaColumn): SchemaTable {
+  const table = readSchemaTable(project, schemaPath);
+  const idx = table.columns.findIndex((c) => c.name === column.name);
+  const columns = table.columns.slice();
+  if (idx >= 0) columns[idx] = column;
+  else columns.push(column);
+  return updateSchemaTable(project, schemaPath, columns, table.description);
+}
+
+/** Removes a single column by name, without touching any other column or the description. */
+export function deleteSchemaColumn(project: string, schemaPath: string, columnName: string): SchemaTable {
+  const table = readSchemaTable(project, schemaPath);
+  if (!table.columns.some((c) => c.name === columnName)) {
+    throw new Error(`No column "${columnName}" on table "${schemaPath}" in project "${project}".`);
+  }
+  const columns = table.columns.filter((c) => c.name !== columnName);
+  return updateSchemaTable(project, schemaPath, columns, table.description);
+}
+
 export function deleteSchemaTable(project: string, schemaPath: string): SchemaTable {
   const table = readSchemaTable(project, schemaPath);
   const { absPath } = resolveSchemaFile(project, schemaPath);

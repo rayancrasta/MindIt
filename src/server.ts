@@ -48,6 +48,9 @@ import { registerReadSchemaTableTool } from './tools/readSchemaTable.js';
 import { registerDeleteSchemaTableTool } from './tools/deleteSchemaTable.js';
 import { registerListSchemasTool } from './tools/listSchemas.js';
 import { registerGetSchemaErdTool } from './tools/getSchemaErd.js';
+import { registerCreateSchemaTablesTool } from './tools/createSchemaTables.js';
+import { registerSetSchemaColumnTool } from './tools/setSchemaColumn.js';
+import { registerDeleteSchemaColumnTool } from './tools/deleteSchemaColumn.js';
 
 const server = new McpServer({ name: 'work-tracker', version: '0.1.0' });
 
@@ -98,6 +101,9 @@ registerReadSchemaTableTool(server);
 registerDeleteSchemaTableTool(server);
 registerListSchemasTool(server);
 registerGetSchemaErdTool(server);
+registerCreateSchemaTablesTool(server);
+registerSetSchemaColumnTool(server);
+registerDeleteSchemaColumnTool(server);
 
 async function main() {
   const transport = new StdioServerTransport();
