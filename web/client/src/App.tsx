@@ -9,6 +9,7 @@ import { ItemDetail } from './pages/ItemDetail';
 import { Wiki } from './pages/Wiki';
 import { Deployments } from './pages/Deployments';
 import { Diagrams } from './pages/Diagrams';
+import { Schemas } from './pages/Schemas';
 
 export default function App() {
   return (
@@ -27,6 +28,9 @@ export default function App() {
             <Route path="/diagrams" element={<Diagrams />} />
             <Route path="/diagrams/:project" element={<Diagrams />} />
             <Route path="/diagrams/:project/*" element={<Diagrams />} />
+            <Route path="/schemas" element={<Schemas />} />
+            <Route path="/schemas/:project" element={<Schemas />} />
+            <Route path="/schemas/:project/*" element={<Schemas />} />
           </Routes>
         </Layout>
       </ProjectProvider>

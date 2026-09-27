@@ -42,6 +42,12 @@ import { registerUpdateDiagramTool } from './tools/updateDiagram.js';
 import { registerReadDiagramTool } from './tools/readDiagram.js';
 import { registerDeleteDiagramTool } from './tools/deleteDiagram.js';
 import { registerListDiagramsTool } from './tools/listDiagrams.js';
+import { registerCreateSchemaTableTool } from './tools/createSchemaTable.js';
+import { registerUpdateSchemaTableTool } from './tools/updateSchemaTable.js';
+import { registerReadSchemaTableTool } from './tools/readSchemaTable.js';
+import { registerDeleteSchemaTableTool } from './tools/deleteSchemaTable.js';
+import { registerListSchemasTool } from './tools/listSchemas.js';
+import { registerGetSchemaErdTool } from './tools/getSchemaErd.js';
 
 const server = new McpServer({ name: 'work-tracker', version: '0.1.0' });
 
@@ -86,6 +92,12 @@ registerUpdateDiagramTool(server);
 registerReadDiagramTool(server);
 registerDeleteDiagramTool(server);
 registerListDiagramsTool(server);
+registerCreateSchemaTableTool(server);
+registerUpdateSchemaTableTool(server);
+registerReadSchemaTableTool(server);
+registerDeleteSchemaTableTool(server);
+registerListSchemasTool(server);
+registerGetSchemaErdTool(server);
 
 async function main() {
   const transport = new StdioServerTransport();

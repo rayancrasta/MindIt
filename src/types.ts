@@ -107,6 +107,37 @@ export interface DiagramTreeNode {
   children?: DiagramTreeNode[];
 }
 
+export interface SchemaForeignKey {
+  table: string;
+  column: string;
+}
+
+export interface SchemaColumn {
+  name: string;
+  type: string;
+  nullable?: boolean;
+  primaryKey?: boolean;
+  foreignKey?: SchemaForeignKey;
+}
+
+export interface SchemaTable {
+  path: string;
+  title: string;
+  description: string;
+  columns: SchemaColumn[];
+  created: string;
+  updated: string;
+}
+
+export interface SchemaTreeNode {
+  name: string;
+  path: string;
+  type: 'folder' | 'page';
+  title?: string;
+  updated?: string;
+  children?: SchemaTreeNode[];
+}
+
 export interface SessionEntry {
   project: string;
   timestamp: string;

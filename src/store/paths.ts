@@ -79,6 +79,12 @@ export function diagramsDir(project: string): string {
   return dir;
 }
 
+export function schemasDir(project: string): string {
+  const dir = path.join(projectDir(project), 'schemas');
+  fs.mkdirSync(dir, { recursive: true });
+  return dir;
+}
+
 export function listProjectSlugs(): string[] {
   return fs
     .readdirSync(dataDir(), { withFileTypes: true })

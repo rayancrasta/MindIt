@@ -139,6 +139,42 @@ export interface DiagramFolderListing {
   pages: { path: string; title: string; updated: string }[];
 }
 
+export interface SchemaForeignKey {
+  table: string;
+  column: string;
+}
+
+export interface SchemaColumn {
+  name: string;
+  type: string;
+  nullable?: boolean;
+  primaryKey?: boolean;
+  foreignKey?: SchemaForeignKey;
+}
+
+export interface SchemaTable {
+  path: string;
+  title: string;
+  description: string;
+  columns: SchemaColumn[];
+  created: string;
+  updated: string;
+}
+
+export interface SchemaTreeNode {
+  name: string;
+  path: string;
+  type: 'folder' | 'page';
+  title?: string;
+  updated?: string;
+  children?: SchemaTreeNode[];
+}
+
+export interface SchemaFolderListing {
+  folders: string[];
+  pages: { path: string; title: string; updated: string }[];
+}
+
 export interface ResumeData {
   pendingFeatures: Feature[];
   pendingStories: Story[];
@@ -317,6 +353,32 @@ export const api = {
         }),
       remove: (project: string, path: string) =>
         req<Diagram>(`/projects/${encodeURIComponent(project)}/diagrams/page${qs({ path })}`, { method: 'DELETE' }),
+    },
+  },
+  schemas: {
+    tree: (project: string, folder?: string) =>
+      req<SchemaFolderListing>(`/projects/${encodeURIComponent(project)}/schemas/tree${qs({ folder })}`),
+    fullTree: (project: string, folder?: string) =>
+      req<SchemaTreeNode[]>(
+        `/projects/${encodeURIComponent(project)}/schemas/tree${qs({ folder, recursive: 'true' })}`
+      ),
+    erd: (project: string, folder?: string) =>
+      req<{ mermaid: string }>(`/projects/${encodeURIComponent(project)}/schemas/erd${qs({ folder })}`),
+    table: {
+      get: (project: string, path: string) =>
+        req<SchemaTable>(`/projects/${encodeURIComponent(project)}/schemas/table${qs({ path })}`),
+      create: (project: string, data: { path: string; columns?: SchemaColumn[]; description?: string; title?: string }) =>
+        req<SchemaTable>(`/projects/${encodeURIComponent(project)}/schemas/table`, {
+          method: 'POST',
+          body: JSON.stringify(data),
+        }),
+      update: (project: string, path: string, columns: SchemaColumn[], description: string) =>
+        req<SchemaTable>(`/projects/${encodeURIComponent(project)}/schemas/table`, {
+          method: 'PUT',
+          body: JSON.stringify({ path, columns, description }),
+        }),
+      remove: (project: string, path: string) =>
+        req<SchemaTable>(`/projects/${encodeURIComponent(project)}/schemas/table${qs({ path })}`, { method: 'DELETE' }),
     },
   },
 };

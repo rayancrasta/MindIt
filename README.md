@@ -17,7 +17,8 @@
   <a href="#wiki"><b>Wiki</b></a> ·
   <a href="#deployment-notes"><b>Deployment notes</b></a> ·
   <a href="#diagrams"><b>Diagrams</b></a> ·
-  <a href="#tools-41"><b>Tools</b></a> ·
+  <a href="#database-schemas"><b>Database Schemas</b></a> ·
+  <a href="#tools-47"><b>Tools</b></a> ·
   <a href="#skills"><b>Skills</b></a>
 </p>
 
@@ -64,9 +65,13 @@ server.
   view, reachable by clicking a card or typing a bare number into the search box),
   **Wiki** (`/wiki/<project>/<path>` — a folder/page tree with the same write/preview
   markdown editor used for Notes and Comments, plus a "Copy link" button for pasting a
-  page into a comment elsewhere), and **Diagrams** (`/diagrams/<project>/<path>` — the
+  page into a comment elsewhere), **Diagrams** (`/diagrams/<project>/<path>` — the
   same folder/page tree pattern as the Wiki, but each page is Mermaid source rendered
-  live as an SVG, with a write/preview editor and its own "Copy link" button). On both
+  live as an SVG, with a write/preview editor and its own "Copy link" button), and
+  **Schemas** (`/schemas/<project>/<path>` — the same folder/table tree pattern again,
+  but each leaf is a structured table definition edited through a column form instead of
+  raw text; the root view instead renders a live Mermaid ER diagram of every table and
+  foreign key in the project). On both
   Backlog and Board, a Feature whose Stories are all done drops into a collapsed "Show
   Completed" section so the active work stays in view. A sun/moon toggle in the header
   switches between light and dark — both built on a single restrained neutral-gray
@@ -216,7 +221,40 @@ page mirrors `/wiki` exactly (tree sidebar, write/preview editor, "Copy link" bu
 except Preview renders the actual Mermaid diagram instead of markdown, and an invalid
 diagram shows an inline error instead of crashing the page.
 
-## Tools (41)
+## Database Schemas
+
+A per-project catalog of SQL table structures, laid out with the exact same nested
+folder/page structure as the Wiki and Diagrams (`data/<project-slug>/schemas/…`),
+addressed by path rather than a number for the same reason — folders double as an
+optional grouping by database (e.g. `billing_db/invoices`), with no dedicated `database`
+field. This is a documentation tool, not a live connection: nothing here ever connects to
+an actual database or stores credentials, the same trust model as the rest of MindIt.
+
+Unlike Wiki/Diagrams, a table's structure is **structured data, not free text**: each
+page's frontmatter holds a `columns` array (`name`, `type`, `nullable`, `primaryKey`, and
+an optional `foreignKey: { table, column }`), with the markdown body reserved for
+free-text notes about the table. A foreign key can reference any other table's column in
+the **same project**, but never a table in a different project.
+
+| Tool | What it does |
+|---|---|
+| `create_schema_table` | Create a table at a path (creates parent folders); fails if it already exists |
+| `update_schema_table` | Overwrite a table's full column list and description |
+| `read_schema_table` | Read a table's title, columns, and description |
+| `delete_schema_table` | Delete a table |
+| `list_schemas` | List a folder's contents (one level, or `recursive: true` for the full tree) |
+| `get_schema_erd` | Generate a Mermaid `erDiagram` of every table + foreign key in a project (or one folder) |
+
+Like Diagrams, there's no `append` tool — `update_schema_table` (full replace of the
+column list) is the only edit operation, since columns are structured, not prose.
+
+The web UI's `/schemas` page mirrors `/wiki` and `/diagrams` (tree sidebar, "Copy link"
+button, two-step delete confirm), except the detail panel is a column-by-column form
+editor instead of a text editor, and selecting the project root (instead of a table)
+renders a live Mermaid ER diagram of every table and foreign-key relationship in the
+project — the same diagram `get_schema_erd` returns over MCP.
+
+## Tools (47)
 
 | Verb | Feature | Story | Task | Bug |
 |---|---|---|---|---|
@@ -229,7 +267,7 @@ Plus: `link_stories`, `unlink_stories`, `get_status` (counts by type/status), `l
 `get_resume` (pending items + last session + last deployment, per-project or cross-project),
 `get_item` (look up any item by number alone, regardless of type or project),
 `add_comment`/`update_comment`/`delete_comment` (ADO-style comment threads on any item), and
-the wiki, deployment note, and diagram tools — see above.
+the wiki, deployment note, diagram, and schema tools — see above.
 
 Deleting a Feature/Story with children attached is blocked with a warning unless `force:
 true` is passed; force-delete leaves children pointing at a now-missing parent id (a stale
