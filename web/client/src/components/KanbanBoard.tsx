@@ -28,6 +28,8 @@ export interface Lane {
   addable?: boolean;
   /** Whether this lane starts collapsed. Defaults to true (closed). */
   defaultCollapsed?: boolean;
+  /** Feature id this lane's items belong to, shown as a tag on each card. */
+  featureId?: string;
 }
 
 interface Props {
@@ -104,6 +106,7 @@ export function KanbanBoard({ lanes, onDrop, onAddToLane, childrenByParent, onTo
                       childrenByParent={childrenByParent}
                       onToggleChild={onToggleChild}
                       onToggleItem={onToggleItem}
+                      featureId={lane.featureId}
                     />
                   ))}
                 </div>
@@ -123,6 +126,7 @@ function Column({
   childrenByParent,
   onToggleChild,
   onToggleItem,
+  featureId,
 }: {
   status: ItemStatus;
   label: string;
@@ -130,6 +134,7 @@ function Column({
   childrenByParent?: Record<string, (Task | Bug)[]>;
   onToggleChild?: (child: Task | Bug) => void;
   onToggleItem?: (item: Task | Bug) => void;
+  featureId?: string;
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: status });
   return (
@@ -155,6 +160,7 @@ function Column({
             checklist={item.type === 'story' ? childrenByParent?.[item.id] : undefined}
             onToggleChild={onToggleChild}
             onToggleItem={onToggleItem}
+            featureId={featureId}
           />
         ))}
       </div>
@@ -167,11 +173,13 @@ function Card({
   checklist,
   onToggleChild,
   onToggleItem,
+  featureId,
 }: {
   item: Item;
   checklist?: (Task | Bug)[];
   onToggleChild?: (child: Task | Bug) => void;
   onToggleItem?: (item: Task | Bug) => void;
+  featureId?: string;
 }) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: item.id,
@@ -192,11 +200,16 @@ function Card({
         isDragging ? 'opacity-60 shadow-lg' : ''
       }`}
     >
-      <div className="mb-1 flex items-center gap-1.5">
+      <div className="mb-1 flex flex-wrap items-center gap-1.5">
         {isChild && onToggleItem && (
           <TaskCheckbox checked={isDone(item.status)} onToggle={async () => onToggleItem(item as Task | Bug)} />
         )}
         <ItemTypeBadge type={item.type} id={item.id} />
+        {featureId && (
+          <span className="ml-auto shrink-0 rounded-full bg-neutral-100 px-1.5 py-0.5 text-[10px] font-medium text-neutral-500 dark:bg-neutral-700 dark:text-neutral-400">
+            Feature #{featureId}
+          </span>
+        )}
       </div>
       <Link
         to={`/item/${item.id}`}
