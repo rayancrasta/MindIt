@@ -90,7 +90,7 @@ export function Board() {
             onClick={() => setMode('stories')}
             className={`rounded-full px-3 py-1 font-medium transition-colors ${
               mode === 'stories'
-                ? 'bg-blue-600 text-white shadow-sm dark:bg-blue-500'
+                ? 'bg-violet-600 text-white shadow-sm dark:bg-violet-500'
                 : 'text-neutral-600 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-700'
             }`}
           >
@@ -100,7 +100,7 @@ export function Board() {
             onClick={() => setMode('tasks')}
             className={`rounded-full px-3 py-1 font-medium transition-colors ${
               mode === 'tasks'
-                ? 'bg-blue-600 text-white shadow-sm dark:bg-blue-500'
+                ? 'bg-violet-600 text-white shadow-sm dark:bg-violet-500'
                 : 'text-neutral-600 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-700'
             }`}
           >

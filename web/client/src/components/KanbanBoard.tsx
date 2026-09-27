@@ -137,7 +137,7 @@ function Column({
       ref={setNodeRef}
       className={`min-h-[90px] rounded-xl border p-2 transition-colors ${
         isOver
-          ? 'border-blue-400 bg-blue-50 dark:border-blue-500 dark:bg-blue-950/40'
+          ? 'border-violet-400 bg-violet-50 dark:border-violet-500 dark:bg-violet-950/40'
           : 'border-neutral-200/80 bg-neutral-100/70 dark:border-neutral-700 dark:bg-neutral-800/40'
       }`}
     >
