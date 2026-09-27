@@ -249,7 +249,7 @@ export function Schemas() {
   }
 
   if (!project) {
-    return <p className="text-neutral-500">Create a project first from the header.</p>;
+    return <p className="text-neutral-500">Create a project first from the sidebar.</p>;
   }
 
   const table = tableQ.data;

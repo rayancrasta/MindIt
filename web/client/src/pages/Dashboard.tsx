@@ -39,7 +39,7 @@ export function Dashboard() {
   return (
     <div className="space-y-6">
       <section>
-        <h2 className="mb-3 text-lg font-semibold tracking-tight">Status — {project}</h2>
+        <h2 className="mb-3 text-lg font-semibold tracking-tight">Status</h2>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {TYPES.map((t) => {
             const total = ITEM_STATUSES.reduce((sum, s) => sum + (counts?.[t]?.[s] ?? 0), 0);

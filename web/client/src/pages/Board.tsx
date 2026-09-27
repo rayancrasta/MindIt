@@ -84,7 +84,6 @@ export function Board() {
   return (
     <div>
       <div className="mb-4 flex flex-wrap items-center gap-3">
-        <h2 className="text-lg font-semibold tracking-tight">Board — {project}</h2>
         <div className="flex overflow-hidden rounded-full border border-neutral-300 bg-white p-0.5 text-sm dark:border-neutral-600 dark:bg-neutral-800">
           <button
             onClick={() => setMode('stories')}
@@ -122,7 +121,7 @@ export function Board() {
           </select>
         )}
         {mode === 'tasks' && story && (
-          <div className="flex gap-2">
+          <div className="ml-auto flex gap-2">
             <button onClick={() => setCreateModal({ type: 'task', parent: story.id })} className="btn-secondary">
               + task
             </button>

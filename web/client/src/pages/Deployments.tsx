@@ -40,13 +40,6 @@ export function Deployments() {
 
   return (
     <div>
-      <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-lg font-semibold tracking-tight">Deployments — {project}</h2>
-        <button onClick={() => setModalOpen(true)} className="btn-primary">
-          + Log deployment
-        </button>
-      </div>
-
       <div className="mb-4 flex flex-wrap items-center gap-3">
         <div className="flex items-center gap-1.5">
           <span className="text-xs font-medium text-neutral-500">Environment</span>
@@ -90,6 +83,9 @@ export function Deployments() {
             </button>
           ))}
         </div>
+        <button onClick={() => setModalOpen(true)} className="btn-primary ml-auto">
+          + Log deployment
+        </button>
       </div>
 
       {notesQ.isLoading ? (

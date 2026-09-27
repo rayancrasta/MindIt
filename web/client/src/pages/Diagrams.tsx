@@ -120,7 +120,7 @@ export function Diagrams() {
   }
 
   if (!project) {
-    return <p className="text-slate-500">Create a project first from the header.</p>;
+    return <p className="text-slate-500">Create a project first from the sidebar.</p>;
   }
 
   const tree = treeQ.data ?? [];
