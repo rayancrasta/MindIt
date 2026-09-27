@@ -286,7 +286,7 @@ export function Layout({ children }: { children: ReactNode }) {
       </aside>
 
       <main className="min-w-0 flex-1 overflow-y-auto">
-        <div className={`mx-auto p-4 ${location.pathname.startsWith('/schemas') ? 'max-w-none' : 'max-w-6xl'}`}>
+        <div className={`mx-auto p-4 pt-8 ${location.pathname.startsWith('/schemas') ? 'max-w-none' : 'max-w-6xl'}`}>
           {children}
         </div>
       </main>
