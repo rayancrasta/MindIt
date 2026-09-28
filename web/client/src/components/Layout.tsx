@@ -132,6 +132,22 @@ function pageTitle(pathname: string): string | null {
   return PAGE_TITLES.find((p) => pathname.startsWith(p.prefix))?.label ?? null;
 }
 
+/**
+ * Wiki/Diagrams/Schemas/Specs bake the project into the URL and treat that as the source of
+ * truth (they sync context to the route, not the other way round). So switching projects from
+ * the sidebar has to navigate to that project's URL on these routes, or the page's own effect
+ * immediately snaps context back to whatever project is already in the URL.
+ */
+function projectScopedPath(pathname: string, project: string): string | null {
+  if (pathname.startsWith('/wiki')) return `/wiki/${encodeURIComponent(project)}`;
+  const diagramsMatch = pathname.match(/^\/diagrams\/(sequence|mermaid)/);
+  if (diagramsMatch) return `/diagrams/${diagramsMatch[1]}/${encodeURIComponent(project)}`;
+  if (pathname.startsWith('/schemas')) return `/schemas/${encodeURIComponent(project)}`;
+  const specsMatch = pathname.match(/^\/specs\/(web|mobile)/);
+  if (specsMatch) return `/specs/${specsMatch[1]}/${encodeURIComponent(project)}`;
+  return null;
+}
+
 export function Layout({ children }: { children: ReactNode }) {
   const { projects, project, setProject } = useProject();
   const { theme, toggleTheme } = useTheme();
@@ -180,6 +196,8 @@ export function Layout({ children }: { children: ReactNode }) {
 
   function onSelectProject(p: string) {
     setProject(p);
+    const scoped = projectScopedPath(location.pathname, p);
+    if (scoped) navigate(scoped);
     setProjectMenuOpen(false);
   }
 
