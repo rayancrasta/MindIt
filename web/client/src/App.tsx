@@ -10,6 +10,7 @@ import { Wiki } from './pages/Wiki';
 import { Deployments } from './pages/Deployments';
 import { Diagrams } from './pages/Diagrams';
 import { Schemas } from './pages/Schemas';
+import { Projects } from './pages/Projects';
 
 export default function App() {
   return (
@@ -31,6 +32,7 @@ export default function App() {
             <Route path="/schemas" element={<Schemas />} />
             <Route path="/schemas/:project" element={<Schemas />} />
             <Route path="/schemas/:project/*" element={<Schemas />} />
+            <Route path="/projects" element={<Projects />} />
           </Routes>
         </Layout>
       </ProjectProvider>

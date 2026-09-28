@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState, type FormEvent, type ReactNode, type SVGProps } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import { useProject } from '../context/ProjectContext';
 import { useTheme } from '../context/ThemeContext';
-import { slugify } from '../api';
+import { api } from '../api';
+import { FolderBrowserModal } from './FolderBrowserModal';
 
 function Icon(props: SVGProps<SVGSVGElement>) {
   return (
@@ -83,11 +85,17 @@ export function Layout({ children }: { children: ReactNode }) {
   const { theme, toggleTheme } = useTheme();
   const location = useLocation();
   const navigate = useNavigate();
+  const qc = useQueryClient();
   const [search, setSearch] = useState('');
   const [projectMenuOpen, setProjectMenuOpen] = useState(false);
   const [newProjectOpen, setNewProjectOpen] = useState(false);
   const [newProjectName, setNewProjectName] = useState('');
+  const [customPath, setCustomPath] = useState('');
+  const [folderBrowserOpen, setFolderBrowserOpen] = useState(false);
+  const [createError, setCreateError] = useState<string | null>(null);
+  const [creating, setCreating] = useState(false);
   const switcherRef = useRef<HTMLDivElement>(null);
+  const currentProjectMeta = projects.find((p) => p.slug === project);
 
   useEffect(() => {
     function onPointerDown(e: MouseEvent) {
@@ -123,15 +131,33 @@ export function Layout({ children }: { children: ReactNode }) {
     setProjectMenuOpen(false);
   }
 
-  function onCreateProject(e: FormEvent) {
-    e.preventDefault();
-    const name = slugify(newProjectName);
-    if (!name) return;
-    setProject(name);
+  function resetNewProjectForm() {
     setNewProjectName('');
+    setCustomPath('');
+    setCreateError(null);
     setNewProjectOpen(false);
-    setProjectMenuOpen(false);
-    navigate('/backlog');
+  }
+
+  async function onCreateProject(e: FormEvent) {
+    e.preventDefault();
+    if (!newProjectName.trim()) return;
+    setCreating(true);
+    setCreateError(null);
+    try {
+      const meta = await api.projects.create({
+        name: newProjectName.trim(),
+        path: customPath.trim() || undefined,
+      });
+      qc.invalidateQueries({ queryKey: ['projects'] });
+      setProject(meta.slug);
+      resetNewProjectForm();
+      setProjectMenuOpen(false);
+      navigate('/backlog');
+    } catch (err) {
+      setCreateError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setCreating(false);
+    }
   }
 
   return (
@@ -147,7 +173,7 @@ export function Layout({ children }: { children: ReactNode }) {
             onClick={() => setProjectMenuOpen((v) => !v)}
             className="flex w-full items-center justify-between gap-2 rounded-lg px-2 py-1.5 text-sm font-medium text-neutral-700 transition-colors hover:bg-neutral-100 dark:text-neutral-200 dark:hover:bg-neutral-800"
           >
-            <span className="truncate">{project ?? 'Select project'}</span>
+            <span className="truncate">{currentProjectMeta?.name ?? project ?? 'Select project'}</span>
             <svg
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 24 24"
@@ -168,26 +194,23 @@ export function Layout({ children }: { children: ReactNode }) {
               {projects.length === 0 && !project && (
                 <div className="px-2 py-1.5 text-sm text-neutral-400 dark:text-neutral-500">No projects yet</div>
               )}
-              {project && !projects.includes(project) && (
-                <button
-                  onClick={() => onSelectProject(project)}
-                  className="flex w-full items-center justify-between rounded-md bg-violet-500/15 px-2 py-1.5 text-left text-sm text-violet-700 dark:text-violet-300"
-                >
-                  <span className="truncate">{project} (new)</span>
-                </button>
-              )}
               <div className="custom-scrollbar max-h-56 overflow-y-auto">
                 {projects.map((p) => (
                   <button
-                    key={p}
-                    onClick={() => onSelectProject(p)}
-                    className={`flex w-full items-center justify-between rounded-md px-2 py-1.5 text-left text-sm transition-colors ${
-                      p === project
+                    key={p.slug}
+                    onClick={() => onSelectProject(p.slug)}
+                    className={`flex w-full items-center justify-between gap-2 rounded-md px-2 py-1.5 text-left text-sm transition-colors ${
+                      p.slug === project
                         ? 'bg-violet-500/15 text-violet-700 dark:text-violet-300'
                         : 'text-neutral-700 hover:bg-neutral-100 dark:text-neutral-200 dark:hover:bg-neutral-700'
                     }`}
                   >
-                    <span className="truncate">{p}</span>
+                    <span className="truncate">{p.name}</span>
+                    {p.path && (
+                      <span className="shrink-0 rounded bg-neutral-100 px-1 py-0.5 text-[10px] font-medium text-neutral-500 dark:bg-neutral-700 dark:text-neutral-400">
+                        external
+                      </span>
+                    )}
                   </button>
                 ))}
               </div>
@@ -195,7 +218,7 @@ export function Layout({ children }: { children: ReactNode }) {
               <div className="my-1 border-t border-neutral-200 dark:border-neutral-700" />
 
               {newProjectOpen ? (
-                <form onSubmit={onCreateProject} className="flex items-center gap-1 p-1">
+                <form onSubmit={onCreateProject} className="flex flex-col gap-1.5 p-1">
                   <input
                     autoFocus
                     value={newProjectName}
@@ -203,12 +226,48 @@ export function Layout({ children }: { children: ReactNode }) {
                     placeholder="Project name"
                     className="w-full min-w-0 rounded-md bg-neutral-100 px-2 py-1 text-sm text-neutral-900 placeholder-neutral-400 outline-none focus:bg-neutral-200 dark:bg-neutral-700 dark:text-neutral-100 dark:placeholder-neutral-500 dark:focus:bg-neutral-600"
                   />
-                  <button
-                    type="submit"
-                    className="shrink-0 rounded-md bg-violet-600 px-2 py-1 text-sm text-white hover:bg-violet-500 dark:bg-violet-500 dark:hover:bg-violet-400"
-                  >
-                    Add
-                  </button>
+                  {customPath ? (
+                    <div className="flex items-center gap-1">
+                      <span
+                        title={customPath}
+                        className="min-w-0 flex-1 truncate rounded-md bg-neutral-100 px-2 py-1 font-mono text-xs text-neutral-500 dark:bg-neutral-700 dark:text-neutral-400"
+                      >
+                        {customPath}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setCustomPath('')}
+                        className="shrink-0 text-xs text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200"
+                      >
+                        Clear
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setFolderBrowserOpen(true)}
+                      className="flex items-center gap-1 self-start text-xs font-medium text-violet-600 hover:text-violet-500 dark:text-violet-400 dark:hover:text-violet-300"
+                    >
+                      Use a custom folder…
+                    </button>
+                  )}
+                  {createError && <p className="text-xs text-red-500">{createError}</p>}
+                  <div className="flex items-center gap-1">
+                    <button
+                      type="submit"
+                      disabled={creating}
+                      className="shrink-0 rounded-md bg-violet-600 px-2 py-1 text-sm text-white hover:bg-violet-500 disabled:opacity-50 dark:bg-violet-500 dark:hover:bg-violet-400"
+                    >
+                      {creating ? 'Creating…' : 'Create'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={resetNewProjectForm}
+                      className="rounded-md px-2 py-1 text-sm text-neutral-500 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:bg-neutral-700"
+                    >
+                      Cancel
+                    </button>
+                  </div>
                 </form>
               ) : (
                 <button
@@ -218,7 +277,27 @@ export function Layout({ children }: { children: ReactNode }) {
                   <span className="text-base leading-none">+</span> New project
                 </button>
               )}
+
+              <div className="my-1 border-t border-neutral-200 dark:border-neutral-700" />
+
+              <Link
+                to="/projects"
+                onClick={() => setProjectMenuOpen(false)}
+                className="flex w-full items-center gap-1.5 rounded-md px-2 py-1.5 text-left text-sm text-neutral-600 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-700"
+              >
+                Manage projects
+              </Link>
             </div>
+          )}
+
+          {folderBrowserOpen && (
+            <FolderBrowserModal
+              onClose={() => setFolderBrowserOpen(false)}
+              onSelect={(p) => {
+                setCustomPath(p);
+                setFolderBrowserOpen(false);
+              }}
+            />
           )}
         </div>
 

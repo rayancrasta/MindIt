@@ -175,6 +175,20 @@ export interface SchemaFolderListing {
   pages: { path: string; title: string; updated: string }[];
 }
 
+export interface ProjectMeta {
+  slug: string;
+  name: string;
+  /** Absolute path holding this project's files, or null for the default location inside data/. */
+  path: string | null;
+  created: string;
+}
+
+export interface BrowseResult {
+  path: string;
+  parent: string | null;
+  directories: string[];
+}
+
 export interface ResumeData {
   pendingFeatures: Feature[];
   pendingStories: Story[];
@@ -217,7 +231,18 @@ async function req<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 export const api = {
-  projects: () => req<string[]>('/projects'),
+  projects: {
+    list: () => req<ProjectMeta[]>('/projects'),
+    create: (data: { name: string; path?: string }) =>
+      req<ProjectMeta>('/projects', { method: 'POST', body: JSON.stringify(data) }),
+    rename: (slug: string, name: string) =>
+      req<ProjectMeta>(`/projects/${encodeURIComponent(slug)}`, { method: 'PATCH', body: JSON.stringify({ name }) }),
+    remove: (slug: string) =>
+      req<{ message: string }>(`/projects/${encodeURIComponent(slug)}`, { method: 'DELETE' }),
+  },
+  fs: {
+    browse: (dirPath?: string) => req<BrowseResult>(`/fs/browse${qs({ path: dirPath })}`),
+  },
   status: (project: string) => req<StatusCounts>(`/status${qs({ project })}`),
   resume: (project: string) => req<ResumeData>(`/resume${qs({ project })}`),
 

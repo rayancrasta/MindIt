@@ -1,9 +1,9 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { api } from '../api';
+import { api, type ProjectMeta } from '../api';
 
 interface ProjectContextValue {
-  projects: string[];
+  projects: ProjectMeta[];
   project: string | undefined;
   setProject: (p: string) => void;
 }
@@ -12,16 +12,17 @@ const ProjectContext = createContext<ProjectContextValue | null>(null);
 const STORAGE_KEY = 'work-tracker:selected-project';
 
 export function ProjectProvider({ children }: { children: ReactNode }) {
-  const { data: projects = [] } = useQuery({ queryKey: ['projects'], queryFn: api.projects });
+  const { data: projects = [] } = useQuery({ queryKey: ['projects'], queryFn: api.projects.list });
+  const slugs = projects.map((p) => p.slug);
   const [project, setProjectState] = useState<string | undefined>(
     () => localStorage.getItem(STORAGE_KEY) ?? undefined
   );
 
   useEffect(() => {
-    if ((!project || !projects.includes(project)) && projects.length > 0) {
-      setProjectState(projects[0]);
+    if ((!project || !slugs.includes(project)) && slugs.length > 0) {
+      setProjectState(slugs[0]);
     }
-  }, [project, projects]);
+  }, [project, slugs.join(',')]);
 
   function setProject(p: string) {
     setProjectState(p);

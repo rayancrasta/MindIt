@@ -1,5 +1,6 @@
 import express from 'express';
-import { listProjectSlugs } from '../../../src/store/paths.js';
+import { projectsRouter } from './routes/projects.js';
+import { fsRouter } from './routes/fs.js';
 import { featuresRouter } from './routes/features.js';
 import { storiesRouter } from './routes/stories.js';
 import { tasksRouter } from './routes/tasks.js';
@@ -16,9 +17,8 @@ import { schemasRouter } from './routes/schemas.js';
 const app = express();
 app.use(express.json());
 
-app.get('/api/projects', (_req, res) => {
-  res.json(listProjectSlugs());
-});
+app.use('/api/projects', projectsRouter);
+app.use('/api/fs', fsRouter);
 
 app.use('/api/features', featuresRouter);
 app.use('/api/stories', storiesRouter);
