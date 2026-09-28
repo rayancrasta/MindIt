@@ -27,8 +27,9 @@ export default function App() {
             <Route path="/wiki/:project/*" element={<Wiki />} />
             <Route path="/deployments" element={<Deployments />} />
             <Route path="/diagrams" element={<Diagrams />} />
-            <Route path="/diagrams/:project" element={<Diagrams />} />
-            <Route path="/diagrams/:project/*" element={<Diagrams />} />
+            <Route path="/diagrams/:kind" element={<Diagrams />} />
+            <Route path="/diagrams/:kind/:project" element={<Diagrams />} />
+            <Route path="/diagrams/:kind/:project/*" element={<Diagrams />} />
             <Route path="/schemas" element={<Schemas />} />
             <Route path="/schemas/:project" element={<Schemas />} />
             <Route path="/schemas/:project/*" element={<Schemas />} />

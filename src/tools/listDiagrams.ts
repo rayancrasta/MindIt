@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import type { DiagramTreeNode } from '../types.js';
+import { DIAGRAM_KINDS, type DiagramKind, type DiagramTreeNode } from '../types.js';
 import { getDiagramTree, listDiagramFolder } from '../store/diagrams.js';
 import { safeHandler } from './common.js';
 
@@ -10,7 +10,7 @@ function formatTree(nodes: DiagramTreeNode[], depth = 0): string {
     .map((n) =>
       n.type === 'folder'
         ? `${indent}${n.name}/\n${formatTree(n.children ?? [], depth + 1)}`
-        : `${indent}${n.title} [${n.path}.mmd]`
+        : `${indent}${n.title} (${n.kind}) [${n.path}.mmd]`
     )
     .join('\n');
 }
@@ -22,23 +22,29 @@ export function registerListDiagramsTool(server: McpServer): void {
       title: 'List Diagrams',
       description:
         'List the folders and diagrams in a project\'s diagrams section, like "ls". Defaults to one level at the root; ' +
-        'pass a folder to look inside it, or recursive: true for the full nested tree.',
+        'pass a folder to look inside it, or recursive: true for the full nested tree. Pass kind to only show ' +
+        '"sequence" or "mermaid" diagrams.',
       inputSchema: {
         project: z.string().min(1).describe('Project name'),
         folder: z.string().optional().describe('Folder path to list; omit for the diagrams root'),
         recursive: z.boolean().optional().describe('If true, return the full nested tree instead of one level'),
+        kind: z
+          .enum(DIAGRAM_KINDS as [string, ...string[]])
+          .optional()
+          .describe('Filter to only "sequence" or "mermaid" diagrams'),
       },
     },
-    safeHandler(({ project, folder, recursive }) => {
+    safeHandler(({ project, folder, recursive, kind }) => {
+      const diagramKind = kind as DiagramKind | undefined;
       if (recursive) {
-        const tree = getDiagramTree(project, folder);
+        const tree = getDiagramTree(project, folder, diagramKind);
         return tree.length === 0 ? 'Empty.' : formatTree(tree);
       }
-      const { folders, pages } = listDiagramFolder(project, folder);
+      const { folders, pages } = listDiagramFolder(project, folder, diagramKind);
       if (folders.length === 0 && pages.length === 0) return 'Empty.';
       const lines = [
         ...folders.map((f) => `${f}/`),
-        ...pages.map((p) => `${p.title} [${p.path}.mmd]`),
+        ...pages.map((p) => `${p.title} (${p.kind}) [${p.path}.mmd]`),
       ];
       return lines.join('\n');
     })

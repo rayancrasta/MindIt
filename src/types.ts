@@ -90,9 +90,14 @@ export interface WikiTreeNode {
   children?: WikiTreeNode[];
 }
 
+export type DiagramKind = 'sequence' | 'mermaid';
+
+export const DIAGRAM_KINDS: DiagramKind[] = ['sequence', 'mermaid'];
+
 export interface Diagram {
   path: string;
   title: string;
+  kind: DiagramKind;
   content: string;
   created: string;
   updated: string;
@@ -103,6 +108,7 @@ export interface DiagramTreeNode {
   path: string;
   type: 'folder' | 'page';
   title?: string;
+  kind?: DiagramKind;
   updated?: string;
   children?: DiagramTreeNode[];
 }

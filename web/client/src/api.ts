@@ -117,9 +117,13 @@ export interface DeploymentNote {
   updated: string;
 }
 
+export type DiagramKind = 'sequence' | 'mermaid';
+export const DIAGRAM_KINDS: DiagramKind[] = ['sequence', 'mermaid'];
+
 export interface Diagram {
   path: string;
   title: string;
+  kind: DiagramKind;
   content: string;
   created: string;
   updated: string;
@@ -130,13 +134,14 @@ export interface DiagramTreeNode {
   path: string;
   type: 'folder' | 'page';
   title?: string;
+  kind?: DiagramKind;
   updated?: string;
   children?: DiagramTreeNode[];
 }
 
 export interface DiagramFolderListing {
   folders: string[];
-  pages: { path: string; title: string; updated: string }[];
+  pages: { path: string; title: string; kind: DiagramKind; updated: string }[];
 }
 
 export interface SchemaForeignKey {
@@ -378,11 +383,11 @@ export const api = {
       req<{ message: string }>(`/deployments/${id}${qs({ project })}`, { method: 'DELETE' }),
   },
   diagrams: {
-    tree: (project: string, folder?: string) =>
-      req<DiagramFolderListing>(`/projects/${encodeURIComponent(project)}/diagrams/tree${qs({ folder })}`),
-    fullTree: (project: string, folder?: string) =>
+    tree: (project: string, folder?: string, kind?: DiagramKind) =>
+      req<DiagramFolderListing>(`/projects/${encodeURIComponent(project)}/diagrams/tree${qs({ folder, kind })}`),
+    fullTree: (project: string, folder?: string, kind?: DiagramKind) =>
       req<DiagramTreeNode[]>(
-        `/projects/${encodeURIComponent(project)}/diagrams/tree${qs({ folder, recursive: 'true' })}`
+        `/projects/${encodeURIComponent(project)}/diagrams/tree${qs({ folder, kind, recursive: 'true' })}`
       ),
     page: {
       get: (project: string, path: string) =>
