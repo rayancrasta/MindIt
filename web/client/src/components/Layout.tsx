@@ -77,6 +77,19 @@ const SchemasIcon = () => (
     <path d="M4 12c0 1.66 3.58 3 8 3s8-1.34 8-3" />
   </Icon>
 );
+const WebSpecsIcon = () => (
+  <Icon>
+    <rect x="3" y="4" width="18" height="14" rx="2" />
+    <path d="M3 9h18" />
+    <path d="M8 14h8" />
+  </Icon>
+);
+const MobileSpecsIcon = () => (
+  <Icon>
+    <rect x="7" y="2" width="10" height="20" rx="2" />
+    <path d="M11 18h2" />
+  </Icon>
+);
 
 const NAV = [
   { to: '/', label: 'Dashboard', icon: DashboardIcon },
@@ -87,6 +100,8 @@ const NAV = [
   { to: '/diagrams/sequence', label: 'Sequence Diagrams', icon: SequenceDiagramsIcon },
   { to: '/diagrams/mermaid', label: 'Mermaid Diagrams', icon: MermaidDiagramsIcon },
   { to: '/schemas', label: 'Schemas', icon: SchemasIcon },
+  { to: '/specs/web', label: 'Web Specs', icon: WebSpecsIcon },
+  { to: '/specs/mobile', label: 'Mobile Specs', icon: MobileSpecsIcon },
 ];
 
 const PAGE_TITLES = [
@@ -97,6 +112,8 @@ const PAGE_TITLES = [
   { prefix: '/diagrams/sequence', label: 'Sequence Diagrams' },
   { prefix: '/diagrams/mermaid', label: 'Mermaid Diagrams' },
   { prefix: '/schemas', label: 'Schemas' },
+  { prefix: '/specs/web', label: 'Web Specs' },
+  { prefix: '/specs/mobile', label: 'Mobile Specs' },
   { prefix: '/projects', label: 'Projects' },
 ];
 
@@ -391,7 +408,11 @@ export function Layout({ children }: { children: ReactNode }) {
       </aside>
 
       <main className="min-w-0 flex-1 overflow-y-auto">
-        <div className={`mx-auto p-4 pt-8 ${location.pathname.startsWith('/schemas') ? 'max-w-none' : 'max-w-6xl'}`}>
+        <div
+          className={`mx-auto p-4 pt-8 ${
+            location.pathname.startsWith('/schemas') || location.pathname.startsWith('/specs') ? 'max-w-none' : 'max-w-6xl'
+          }`}
+        >
           {pageTitle(location.pathname) && (
             <h1 className="mb-4 text-lg font-semibold tracking-tight text-neutral-900 dark:text-neutral-100">
               {pageTitle(location.pathname)}

@@ -10,6 +10,7 @@ import { Wiki } from './pages/Wiki';
 import { Deployments } from './pages/Deployments';
 import { Diagrams } from './pages/Diagrams';
 import { Schemas } from './pages/Schemas';
+import { Specs } from './pages/Specs';
 import { Projects } from './pages/Projects';
 
 export default function App() {
@@ -33,6 +34,10 @@ export default function App() {
             <Route path="/schemas" element={<Schemas />} />
             <Route path="/schemas/:project" element={<Schemas />} />
             <Route path="/schemas/:project/*" element={<Schemas />} />
+            <Route path="/specs" element={<Specs />} />
+            <Route path="/specs/:platform" element={<Specs />} />
+            <Route path="/specs/:platform/:project" element={<Specs />} />
+            <Route path="/specs/:platform/:project/*" element={<Specs />} />
             <Route path="/projects" element={<Projects />} />
           </Routes>
         </Layout>

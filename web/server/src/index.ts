@@ -13,6 +13,7 @@ import { wikiRouter } from './routes/wiki.js';
 import { deploymentsRouter } from './routes/deployments.js';
 import { diagramsRouter } from './routes/diagrams.js';
 import { schemasRouter } from './routes/schemas.js';
+import { specsRouter } from './routes/specs.js';
 
 const app = express();
 app.use(express.json());
@@ -32,6 +33,7 @@ app.use('/api/projects/:project/wiki', wikiRouter);
 app.use('/api/deployments', deploymentsRouter);
 app.use('/api/projects/:project/diagrams', diagramsRouter);
 app.use('/api/projects/:project/schemas', schemasRouter);
+app.use('/api/projects/:project/specs/:platform', specsRouter);
 
 const PORT = process.env.PORT ? Number(process.env.PORT) : 4001;
 app.listen(PORT, () => {

@@ -51,6 +51,16 @@ import { registerGetSchemaErdTool } from './tools/getSchemaErd.js';
 import { registerCreateSchemaTablesTool } from './tools/createSchemaTables.js';
 import { registerSetSchemaColumnTool } from './tools/setSchemaColumn.js';
 import { registerDeleteSchemaColumnTool } from './tools/deleteSchemaColumn.js';
+import { registerCreateSpecScreenTool } from './tools/createSpecScreen.js';
+import { registerUpdateSpecScreenTool } from './tools/updateSpecScreen.js';
+import { registerReadSpecScreenTool } from './tools/readSpecScreen.js';
+import { registerDeleteSpecScreenTool } from './tools/deleteSpecScreen.js';
+import { registerListSpecsTool } from './tools/listSpecs.js';
+import { registerSetSpecTransitionTool } from './tools/setSpecTransition.js';
+import { registerDeleteSpecTransitionTool } from './tools/deleteSpecTransition.js';
+import { registerGetSpecJourneyTool } from './tools/getSpecJourney.js';
+import { registerLinkSpecTool } from './tools/linkSpec.js';
+import { registerUnlinkSpecTool } from './tools/unlinkSpec.js';
 
 const server = new McpServer({ name: 'work-tracker', version: '0.1.0' });
 
@@ -104,6 +114,16 @@ registerGetSchemaErdTool(server);
 registerCreateSchemaTablesTool(server);
 registerSetSchemaColumnTool(server);
 registerDeleteSchemaColumnTool(server);
+registerCreateSpecScreenTool(server);
+registerUpdateSpecScreenTool(server);
+registerReadSpecScreenTool(server);
+registerDeleteSpecScreenTool(server);
+registerListSpecsTool(server);
+registerSetSpecTransitionTool(server);
+registerDeleteSpecTransitionTool(server);
+registerGetSpecJourneyTool(server);
+registerLinkSpecTool(server);
+registerUnlinkSpecTool(server);
 
 async function main() {
   const transport = new StdioServerTransport();

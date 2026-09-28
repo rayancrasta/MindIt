@@ -29,6 +29,7 @@ export interface Feature {
   updated: string;
   notes?: string;
   comments?: Comment[];
+  specs?: string[];
 }
 
 export interface Story {
@@ -43,6 +44,7 @@ export interface Story {
   notes?: string;
   links?: string[];
   comments?: Comment[];
+  specs?: string[];
 }
 
 export interface Task {
@@ -56,6 +58,7 @@ export interface Task {
   updated: string;
   notes?: string;
   comments?: Comment[];
+  specs?: string[];
 }
 
 export interface Bug {
@@ -69,6 +72,7 @@ export interface Bug {
   updated: string;
   notes?: string;
   comments?: Comment[];
+  specs?: string[];
 }
 
 export type Item = Feature | Story | Task | Bug;
@@ -142,6 +146,58 @@ export interface SchemaTreeNode {
   title?: string;
   updated?: string;
   children?: SchemaTreeNode[];
+}
+
+export type SpecPlatform = 'web' | 'mobile';
+
+export const SPEC_PLATFORMS: SpecPlatform[] = ['web', 'mobile'];
+
+export type SpecStatus = 'draft' | 'in_review' | 'approved';
+
+export const SPEC_STATUSES: SpecStatus[] = ['draft', 'in_review', 'approved'];
+
+export type SpecTestType = 'unit' | 'integration';
+
+export const SPEC_TEST_TYPES: SpecTestType[] = ['unit', 'integration'];
+
+/** A single entry/exit point on a screen — either a transition to another screen in the same platform tree, or an external trigger with no screen on the other end (app launch, push notification, deep link, etc). */
+export interface SpecTransition {
+  label: string;
+  target?: string;
+  external?: string;
+}
+
+export interface SpecTestCase {
+  type: SpecTestType;
+  description: string;
+}
+
+export interface SpecScreen {
+  path: string;
+  title: string;
+  platform: SpecPlatform;
+  designUrl?: string;
+  status: SpecStatus;
+  tags?: string[];
+  entryPoints: SpecTransition[];
+  exitPoints: SpecTransition[];
+  acceptanceCriteria?: string[];
+  testCases?: SpecTestCase[];
+  codeRefs?: string[];
+  dataRefs?: string[];
+  description: string;
+  created: string;
+  updated: string;
+}
+
+export interface SpecTreeNode {
+  name: string;
+  path: string;
+  type: 'folder' | 'page';
+  title?: string;
+  status?: SpecStatus;
+  updated?: string;
+  children?: SpecTreeNode[];
 }
 
 export interface SessionEntry {

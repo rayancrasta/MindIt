@@ -34,6 +34,7 @@ interface BaseItem {
   updated: string;
   notes?: string;
   comments?: Comment[];
+  specs?: string[];
 }
 
 export interface Feature extends BaseItem {
@@ -180,6 +181,59 @@ export interface SchemaFolderListing {
   pages: { path: string; title: string; updated: string }[];
 }
 
+export type SpecPlatform = 'web' | 'mobile';
+export const SPEC_PLATFORMS: SpecPlatform[] = ['web', 'mobile'];
+
+export type SpecStatus = 'draft' | 'in_review' | 'approved';
+export const SPEC_STATUSES: SpecStatus[] = ['draft', 'in_review', 'approved'];
+
+export type SpecTestType = 'unit' | 'integration';
+export const SPEC_TEST_TYPES: SpecTestType[] = ['unit', 'integration'];
+
+export interface SpecTransition {
+  label: string;
+  target?: string;
+  external?: string;
+}
+
+export interface SpecTestCase {
+  type: SpecTestType;
+  description: string;
+}
+
+export interface SpecScreen {
+  path: string;
+  title: string;
+  platform: SpecPlatform;
+  designUrl?: string;
+  status: SpecStatus;
+  tags?: string[];
+  entryPoints: SpecTransition[];
+  exitPoints: SpecTransition[];
+  acceptanceCriteria?: string[];
+  testCases?: SpecTestCase[];
+  codeRefs?: string[];
+  dataRefs?: string[];
+  description: string;
+  created: string;
+  updated: string;
+}
+
+export interface SpecTreeNode {
+  name: string;
+  path: string;
+  type: 'folder' | 'page';
+  title?: string;
+  status?: SpecStatus;
+  updated?: string;
+  children?: SpecTreeNode[];
+}
+
+export interface SpecFolderListing {
+  folders: string[];
+  pages: { path: string; title: string; status: SpecStatus; updated: string }[];
+}
+
 export interface ProjectMeta {
   slug: string;
   name: string;
@@ -293,6 +347,12 @@ export const api = {
         req<Item>(`/items/${id}/comments/${commentId}`, { method: 'PATCH', body: JSON.stringify({ text }) }),
       remove: (id: string, commentId: string) =>
         req<Item>(`/items/${id}/comments/${commentId}`, { method: 'DELETE' }),
+    },
+    specs: {
+      link: (id: string, platform: SpecPlatform, path: string) =>
+        req<Item>(`/items/${id}/specs/link`, { method: 'POST', body: JSON.stringify({ platform, path }) }),
+      unlink: (id: string, platform: SpecPlatform, path: string) =>
+        req<Item>(`/items/${id}/specs/link${qs({ platform, path })}`, { method: 'DELETE' }),
     },
   },
   log: {
@@ -432,6 +492,59 @@ export const api = {
         }),
       remove: (project: string, path: string) =>
         req<SchemaTable>(`/projects/${encodeURIComponent(project)}/schemas/table${qs({ path })}`, { method: 'DELETE' }),
+    },
+  },
+  specs: {
+    tree: (project: string, platform: SpecPlatform, folder?: string) =>
+      req<SpecFolderListing>(`/projects/${encodeURIComponent(project)}/specs/${platform}/tree${qs({ folder })}`),
+    fullTree: (project: string, platform: SpecPlatform, folder?: string) =>
+      req<SpecTreeNode[]>(
+        `/projects/${encodeURIComponent(project)}/specs/${platform}/tree${qs({ folder, recursive: 'true' })}`
+      ),
+    journey: (project: string, platform: SpecPlatform, folder?: string) =>
+      req<{ mermaid: string }>(`/projects/${encodeURIComponent(project)}/specs/${platform}/journey${qs({ folder })}`),
+    screens: (project: string, platform: SpecPlatform, folder?: string) =>
+      req<SpecScreen[]>(`/projects/${encodeURIComponent(project)}/specs/${platform}/screens${qs({ folder })}`),
+    screen: {
+      get: (project: string, platform: SpecPlatform, path: string) =>
+        req<SpecScreen>(`/projects/${encodeURIComponent(project)}/specs/${platform}/screen${qs({ path })}`),
+      references: (project: string, platform: SpecPlatform, path: string) =>
+        req<Item[]>(`/projects/${encodeURIComponent(project)}/specs/${platform}/screen/references${qs({ path })}`),
+      create: (
+        project: string,
+        platform: SpecPlatform,
+        data: { path: string } & Partial<Omit<SpecScreen, 'path' | 'platform' | 'created' | 'updated'>>
+      ) =>
+        req<SpecScreen>(`/projects/${encodeURIComponent(project)}/specs/${platform}/screen`, {
+          method: 'POST',
+          body: JSON.stringify(data),
+        }),
+      update: (
+        project: string,
+        platform: SpecPlatform,
+        path: string,
+        data: Partial<Omit<SpecScreen, 'path' | 'platform' | 'created' | 'updated'>>
+      ) =>
+        req<SpecScreen>(`/projects/${encodeURIComponent(project)}/specs/${platform}/screen`, {
+          method: 'PUT',
+          body: JSON.stringify({ path, ...data }),
+        }),
+      remove: (project: string, platform: SpecPlatform, path: string) =>
+        req<SpecScreen>(`/projects/${encodeURIComponent(project)}/specs/${platform}/screen${qs({ path })}`, {
+          method: 'DELETE',
+        }),
+    },
+    transition: {
+      set: (project: string, platform: SpecPlatform, path: string, direction: 'entry' | 'exit', transition: SpecTransition) =>
+        req<SpecScreen>(`/projects/${encodeURIComponent(project)}/specs/${platform}/screen/transition`, {
+          method: 'PUT',
+          body: JSON.stringify({ path, direction, transition }),
+        }),
+      remove: (project: string, platform: SpecPlatform, path: string, direction: 'entry' | 'exit', label: string) =>
+        req<SpecScreen>(
+          `/projects/${encodeURIComponent(project)}/specs/${platform}/screen/transition${qs({ path, direction, label })}`,
+          { method: 'DELETE' }
+        ),
     },
   },
 };

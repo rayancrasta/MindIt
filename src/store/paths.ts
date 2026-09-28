@@ -185,6 +185,12 @@ export function schemasDir(project: string): string {
   return dir;
 }
 
+export function specsDir(project: string, platform: 'web' | 'mobile'): string {
+  const dir = path.join(projectDir(project), 'specs', platform);
+  fs.mkdirSync(dir, { recursive: true });
+  return dir;
+}
+
 export function listProjectSlugs(): string[] {
   return listProjects().map((p) => p.slug);
 }
