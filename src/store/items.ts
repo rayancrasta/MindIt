@@ -2,7 +2,15 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { randomUUID } from 'node:crypto';
 import matter from 'gray-matter';
-import { ITEM_TYPES, type Comment, type Item, type ItemStatus, type ItemType, type SpecPlatform } from '../types.js';
+import {
+  ITEM_TYPES,
+  type Comment,
+  type Item,
+  type ItemRef,
+  type ItemStatus,
+  type ItemType,
+  type SpecPlatform,
+} from '../types.js';
 import { itemDir, listProjectSlugs, slugify } from './paths.js';
 import { nextId } from './counter.js';
 import { readSpecScreen } from './specs.js';
@@ -119,6 +127,16 @@ export function findItemGlobal(match: string): { type: ItemType; project: string
     }
   }
   return null;
+}
+
+/** Resolves a list of global item IDs (e.g. from a session entry) into current snapshots, silently skipping any that no longer exist. */
+export function resolveItemRefs(ids: string[] | undefined): ItemRef[] | undefined {
+  if (!ids || !ids.length) return undefined;
+  const resolved = ids
+    .map((id) => findItemGlobal(id))
+    .filter((found): found is NonNullable<typeof found> => found !== null)
+    .map((found) => ({ id: found.item.id, type: found.type, title: found.item.title, status: found.item.status }));
+  return resolved.length ? resolved : undefined;
 }
 
 export function updateItem<T extends Item>(

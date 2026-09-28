@@ -209,6 +209,14 @@ export interface SessionEntry {
   items?: string[];
 }
 
+/** A resolved snapshot of an item referenced elsewhere (e.g. by a session entry), for display. */
+export interface ItemRef {
+  id: string;
+  type: ItemType;
+  title: string;
+  status: ItemStatus;
+}
+
 export type DeploymentStatus = 'success' | 'failed' | 'rolled_back';
 
 export const DEPLOYMENT_STATUSES: DeploymentStatus[] = ['success', 'failed', 'rolled_back'];

@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { listItems } from '../../../../src/store/items.js';
+import { listItems, resolveItemRefs } from '../../../../src/store/items.js';
 import { listProjectSlugs } from '../../../../src/store/paths.js';
 import { getLastSessionEntry } from '../../../../src/store/sessions.js';
 import { getLastDeploymentNote } from '../../../../src/store/deployments.js';
@@ -14,12 +14,14 @@ function pendingItems(type: ItemType, project: string) {
 }
 
 function resumeForProject(project: string) {
+  const lastSession = getLastSessionEntry(project);
   return {
     pendingFeatures: pendingItems('feature', project),
     pendingStories: pendingItems('story', project),
     pendingTasks: pendingItems('task', project),
     pendingBugs: pendingItems('bug', project),
-    lastSession: getLastSessionEntry(project),
+    lastSession,
+    lastSessionTouchedItems: resolveItemRefs(lastSession?.items),
     lastDeployment: getLastDeploymentNote(project),
   };
 }

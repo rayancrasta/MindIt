@@ -8,6 +8,7 @@ import { Board } from './pages/Board';
 import { ItemDetail } from './pages/ItemDetail';
 import { Wiki } from './pages/Wiki';
 import { Deployments } from './pages/Deployments';
+import { Handoffs } from './pages/Handoffs';
 import { Diagrams } from './pages/Diagrams';
 import { Schemas } from './pages/Schemas';
 import { Specs } from './pages/Specs';
@@ -27,6 +28,7 @@ export default function App() {
             <Route path="/wiki/:project" element={<Wiki />} />
             <Route path="/wiki/:project/*" element={<Wiki />} />
             <Route path="/deployments" element={<Deployments />} />
+            <Route path="/handoffs" element={<Handoffs />} />
             <Route path="/diagrams" element={<Diagrams />} />
             <Route path="/diagrams/:kind" element={<Diagrams />} />
             <Route path="/diagrams/:kind/:project" element={<Diagrams />} />

@@ -78,6 +78,16 @@ export interface SessionEntry {
   done: string;
   blockers?: string;
   next?: string;
+  items?: string[];
+  /** Only present when the server resolved `items` for display; not sent back on create. */
+  touchedItems?: ItemRef[];
+}
+
+export interface ItemRef {
+  id: string;
+  type: ItemType;
+  title: string;
+  status: ItemStatus;
 }
 
 export interface WikiPage {
@@ -266,6 +276,7 @@ export interface ResumeData {
   pendingTasks: Task[];
   pendingBugs: Bug[];
   lastSession: SessionEntry | null;
+  lastSessionTouchedItems?: ItemRef[];
   lastDeployment: DeploymentNote | null;
 }
 
@@ -370,7 +381,7 @@ export const api = {
   log: {
     list: (project: string, limit?: number) =>
       req<SessionEntry[]>(`/projects/${encodeURIComponent(project)}/log${limit ? `?limit=${limit}` : ''}`),
-    append: (project: string, entry: { done: string; blockers?: string; next?: string }) =>
+    append: (project: string, entry: { done: string; blockers?: string; next?: string; items?: string[] }) =>
       req<{ timestamp: string }>(`/projects/${encodeURIComponent(project)}/log`, {
         method: 'POST',
         body: JSON.stringify(entry),
