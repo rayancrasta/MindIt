@@ -80,6 +80,22 @@ const NAV = [
   { to: '/schemas', label: 'Schemas', icon: SchemasIcon },
 ];
 
+const PAGE_TITLES = [
+  { prefix: '/backlog', label: 'Backlog' },
+  { prefix: '/board', label: 'Board' },
+  { prefix: '/wiki', label: 'Wiki' },
+  { prefix: '/deployments', label: 'Deployments' },
+  { prefix: '/diagrams', label: 'Diagrams' },
+  { prefix: '/schemas', label: 'Schemas' },
+  { prefix: '/projects', label: 'Projects' },
+];
+
+/** The item detail route renders its own item-specific heading, so it's deliberately not covered here. */
+function pageTitle(pathname: string): string | null {
+  if (pathname === '/') return 'Dashboard';
+  return PAGE_TITLES.find((p) => pathname.startsWith(p.prefix))?.label ?? null;
+}
+
 export function Layout({ children }: { children: ReactNode }) {
   const { projects, project, setProject } = useProject();
   const { theme, toggleTheme } = useTheme();
@@ -366,6 +382,11 @@ export function Layout({ children }: { children: ReactNode }) {
 
       <main className="min-w-0 flex-1 overflow-y-auto">
         <div className={`mx-auto p-4 pt-8 ${location.pathname.startsWith('/schemas') ? 'max-w-none' : 'max-w-6xl'}`}>
+          {pageTitle(location.pathname) && (
+            <h1 className="mb-4 text-lg font-semibold tracking-tight text-neutral-900 dark:text-neutral-100">
+              {pageTitle(location.pathname)}
+            </h1>
+          )}
           {children}
         </div>
       </main>

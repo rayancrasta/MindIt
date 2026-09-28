@@ -267,7 +267,7 @@ export function Schemas() {
       </div>
 
       {view === 'relations' ? (
-        <div className="flex min-h-[28rem] flex-col gap-4 xl:h-[calc(100vh-13rem)] xl:flex-row">
+        <div className="flex min-h-[28rem] flex-col gap-4 xl:h-[calc(100vh-16rem)] xl:flex-row">
           <div className="min-w-0 flex-1">
             <SchemaRelationsView
               tables={tables}

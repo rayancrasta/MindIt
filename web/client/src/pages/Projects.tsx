@@ -43,8 +43,6 @@ export function Projects() {
 
   return (
     <div>
-      <h1 className="mb-4 text-lg font-semibold text-neutral-900 dark:text-neutral-100">Projects</h1>
-
       <form onSubmit={onCreate} className="card mb-6 flex flex-col gap-2 p-4">
         <div className="flex flex-wrap items-center gap-2">
           <input
