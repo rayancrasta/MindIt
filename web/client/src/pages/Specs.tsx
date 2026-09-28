@@ -180,7 +180,7 @@ export function Specs() {
   const screensQ = useQuery({
     queryKey: ['spec-screens', project, platform],
     queryFn: () => api.specs.screens(project as string, platform),
-    enabled: !!project && panelMode === 'graph',
+    enabled: !!project,
   });
   const screens = screensQ.data ?? [];
 
@@ -219,21 +219,64 @@ export function Specs() {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [copied, setCopied] = useState(false);
 
+  /** The trail of screens navigated away from by clicking a linked entry/exit point, most recent last. */
+  const [backStack, setBackStack] = useState<{ path: string; title: string }[]>([]);
+  const [linkTarget, setLinkTarget] = useState('');
+  const [linkLabel, setLinkLabel] = useState('');
+  const [linkBackLabel, setLinkBackLabel] = useState('');
+  const [linking, setLinking] = useState(false);
+  const [linkError, setLinkError] = useState<string | null>(null);
+
   useEffect(() => {
     setDraft(null);
     setConfirmDelete(false);
     setCopied(false);
+    setLinkTarget('');
+    setLinkLabel('');
+    setLinkBackLabel('');
+    setLinkError(null);
   }, [project, platform, path]);
+
+  // Only reset the back trail when switching project/platform entirely — a path change can itself be us
+  // following that trail (openLinkedScreen), which must not wipe out the rest of the stack.
+  useEffect(() => {
+    setBackStack([]);
+  }, [project, platform]);
 
   function invalidateLists() {
     qc.invalidateQueries({ queryKey: ['spec-tree', project, platform] });
     qc.invalidateQueries({ queryKey: ['spec-screens', project, platform] });
   }
 
-  function select(p: string) {
+  function invalidateScreen(p: string) {
+    qc.invalidateQueries({ queryKey: ['spec-screen', project, platform, p] });
+    qc.invalidateQueries({ queryKey: ['spec-screen-references', project, platform, p] });
+  }
+
+  function goTo(p: string) {
     if (!project) return;
     const encoded = encodePath(p);
     navigate(`/specs/${platform}/${encodeURIComponent(project)}${encoded ? `/${encoded}` : ''}`);
+  }
+
+  /** Plain navigation — from the tree, root, create, or delete flows. Leaves the link-following back trail behind. */
+  function select(p: string) {
+    setBackStack([]);
+    goTo(p);
+  }
+
+  /** Follows an entry/exit point's target — records where we came from so "Back" can retrace it. */
+  function openLinkedScreen(targetPath: string) {
+    if (!screen) return;
+    setBackStack([...backStack, { path, title: screen.title }]);
+    goTo(targetPath);
+  }
+
+  function goBack() {
+    if (backStack.length === 0) return;
+    const last = backStack[backStack.length - 1];
+    setBackStack(backStack.slice(0, -1));
+    goTo(last.path);
   }
 
   async function createScreen(e: FormEvent) {
@@ -275,6 +318,39 @@ export function Specs() {
     const url = `${window.location.origin}/specs/${platform}/${encodeURIComponent(project)}/${encodePath(path)}`;
     await navigator.clipboard.writeText(url);
     setCopied(true);
+  }
+
+  async function createLink(e: FormEvent) {
+    e.preventDefault();
+    const to = linkTarget.trim();
+    const label = linkLabel.trim();
+    if (!project || !to || !label) return;
+    setLinking(true);
+    setLinkError(null);
+    try {
+      await api.specs.link.create(project, platform, { from: path, to, label, backLabel: linkBackLabel.trim() || undefined });
+      setLinkTarget('');
+      setLinkLabel('');
+      setLinkBackLabel('');
+      invalidateScreen(path);
+      invalidateScreen(to);
+      invalidateLists();
+    } catch (err) {
+      setLinkError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setLinking(false);
+    }
+  }
+
+  /** Removes a link from both sides — works from either the exit-holding or the entry-holding screen's row. */
+  async function unlinkTransition(direction: 'entry' | 'exit', t: SpecTransition) {
+    if (!project || !t.target) return;
+    const from = direction === 'exit' ? path : t.target;
+    const to = direction === 'exit' ? t.target : path;
+    await api.specs.link.remove(project, platform, { from, to, label: t.label });
+    invalidateScreen(path);
+    invalidateScreen(t.target);
+    invalidateLists();
   }
 
   function updateTransition(direction: 'entryPoints' | 'exitPoints', index: number, patch: Partial<TransitionDraft>) {
@@ -364,6 +440,14 @@ export function Specs() {
           </p>
         ) : (
           <>
+            {backStack.length > 0 && (
+              <button
+                onClick={goBack}
+                className="btn-link mb-2 flex items-center gap-1 text-xs text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300"
+              >
+                ← Back to {backStack[backStack.length - 1].title}
+              </button>
+            )}
             <div className="mb-3 flex items-start justify-between gap-2">
               <div className="min-w-0">
                 <div className="flex items-center gap-1.5">
@@ -425,7 +509,7 @@ export function Specs() {
                 <SpecRelationsView
                   screens={journeyScreens}
                   otherScreens={otherJourneyScreens}
-                  onSelectScreen={select}
+                  onSelectScreen={openLinkedScreen}
                   selectedPath={path}
                 />
               </div>
@@ -596,7 +680,53 @@ export function Specs() {
                   </div>
                 ) : null}
 
-                <SpecTransitionsList entryPoints={screen.entryPoints} exitPoints={screen.exitPoints} />
+                <SpecTransitionsList
+                  entryPoints={screen.entryPoints}
+                  exitPoints={screen.exitPoints}
+                  onNavigate={openLinkedScreen}
+                  onUnlink={unlinkTransition}
+                />
+
+                <div>
+                  <h3 className="mb-1 text-xs font-semibold tracking-wide text-neutral-400 uppercase">Link to another screen</h3>
+                  <form onSubmit={createLink} className="flex flex-wrap items-center gap-1.5">
+                    <input
+                      value={linkLabel}
+                      onChange={(e) => setLinkLabel(e.target.value)}
+                      placeholder="exit label, e.g. Proceed to checkout"
+                      className="input w-52 text-xs"
+                    />
+                    <span className="text-xs text-neutral-400">→</span>
+                    <input
+                      list="spec-link-targets"
+                      value={linkTarget}
+                      onChange={(e) => setLinkTarget(e.target.value)}
+                      placeholder="Checkout/Payment"
+                      className="input w-52 text-xs"
+                    />
+                    <datalist id="spec-link-targets">
+                      {screens
+                        .filter((s) => s.path !== path)
+                        .map((s) => (
+                          <option key={s.path} value={s.path} />
+                        ))}
+                    </datalist>
+                    <span className="text-xs text-neutral-400">back label (optional)</span>
+                    <input
+                      value={linkBackLabel}
+                      onChange={(e) => setLinkBackLabel(e.target.value)}
+                      placeholder={linkLabel || 'same as exit label'}
+                      className="input w-40 text-xs"
+                    />
+                    <button type="submit" disabled={!linkTarget.trim() || !linkLabel.trim() || linking} className="btn-secondary px-2.5 py-1 text-xs">
+                      Link
+                    </button>
+                  </form>
+                  {linkError && <p className="mt-1 text-xs text-red-600">{linkError}</p>}
+                  <p className="mt-1 text-xs text-neutral-400">
+                    Adds an exit point here targeting the other screen, and a matching entry point back — even across journeys/folders.
+                  </p>
+                </div>
 
                 {screen.acceptanceCriteria?.length ? (
                   <div>

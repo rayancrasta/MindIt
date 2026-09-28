@@ -219,6 +219,18 @@ export interface SpecScreen {
   updated: string;
 }
 
+export interface SpecLinkInput {
+  from: string;
+  to: string;
+  label: string;
+  backLabel?: string;
+}
+
+export interface SpecLinkResult {
+  from: SpecScreen;
+  to: SpecScreen;
+}
+
 export interface SpecTreeNode {
   name: string;
   path: string;
@@ -543,6 +555,25 @@ export const api = {
       remove: (project: string, platform: SpecPlatform, path: string, direction: 'entry' | 'exit', label: string) =>
         req<SpecScreen>(
           `/projects/${encodeURIComponent(project)}/specs/${platform}/screen/transition${qs({ path, direction, label })}`,
+          { method: 'DELETE' }
+        ),
+    },
+    link: {
+      /** Links two screens across journeys/folders in one call: an exit point on `from` targeting `to`, and a matching entry point back on `to`. */
+      create: (project: string, platform: SpecPlatform, input: SpecLinkInput) =>
+        req<SpecLinkResult>(`/projects/${encodeURIComponent(project)}/specs/${platform}/screen/link`, {
+          method: 'POST',
+          body: JSON.stringify(input),
+        }),
+      /** Removes a link created by link.create from both sides. */
+      remove: (project: string, platform: SpecPlatform, input: SpecLinkInput) =>
+        req<SpecLinkResult>(
+          `/projects/${encodeURIComponent(project)}/specs/${platform}/screen/link${qs({
+            from: input.from,
+            to: input.to,
+            label: input.label,
+            backLabel: input.backLabel,
+          })}`,
           { method: 'DELETE' }
         ),
     },

@@ -5,10 +5,12 @@ import {
   deleteSpecScreen,
   deleteSpecTransition,
   getSpecTree,
+  linkSpecScreens,
   listSpecFolder,
   listSpecScreensRecursive,
   readSpecScreen,
   setSpecTransition,
+  unlinkSpecScreens,
   updateSpecScreen,
 } from '../../../../src/store/specs.js';
 import { findItemsReferencingSpec } from '../../../../src/store/items.js';
@@ -154,6 +156,37 @@ specsRouter.delete('/screen/transition', (req, res) => {
   if (!label || typeof label !== 'string') return res.status(400).json({ error: 'label is required.' });
   try {
     res.json(deleteSpecTransition(project, platform, path, direction, label));
+  } catch (err) {
+    res.status(400).json({ error: err instanceof Error ? err.message : String(err) });
+  }
+});
+
+specsRouter.post('/screen/link', (req, res) => {
+  const { project } = req.params as { project: string };
+  const platform = platformParam(req) as SpecPlatform;
+  const { from, to, label, backLabel } = req.body ?? {};
+  if (!from || typeof from !== 'string') return res.status(400).json({ error: 'from is required.' });
+  if (!to || typeof to !== 'string') return res.status(400).json({ error: 'to is required.' });
+  if (!label || typeof label !== 'string') return res.status(400).json({ error: 'label is required.' });
+  try {
+    res.json(linkSpecScreens(project, platform, { from, to, label, backLabel }));
+  } catch (err) {
+    res.status(400).json({ error: err instanceof Error ? err.message : String(err) });
+  }
+});
+
+specsRouter.delete('/screen/link', (req, res) => {
+  const { project } = req.params as { project: string };
+  const platform = platformParam(req) as SpecPlatform;
+  const from = req.query.from;
+  const to = req.query.to;
+  const label = req.query.label;
+  const backLabel = typeof req.query.backLabel === 'string' ? req.query.backLabel : undefined;
+  if (!from || typeof from !== 'string') return res.status(400).json({ error: 'from is required.' });
+  if (!to || typeof to !== 'string') return res.status(400).json({ error: 'to is required.' });
+  if (!label || typeof label !== 'string') return res.status(400).json({ error: 'label is required.' });
+  try {
+    res.json(unlinkSpecScreens(project, platform, { from, to, label, backLabel }));
   } catch (err) {
     res.status(400).json({ error: err instanceof Error ? err.message : String(err) });
   }

@@ -61,6 +61,8 @@ import { registerDeleteSpecTransitionTool } from './tools/deleteSpecTransition.j
 import { registerGetSpecJourneyTool } from './tools/getSpecJourney.js';
 import { registerLinkSpecTool } from './tools/linkSpec.js';
 import { registerUnlinkSpecTool } from './tools/unlinkSpec.js';
+import { registerLinkSpecScreensTool } from './tools/linkSpecScreens.js';
+import { registerUnlinkSpecScreensTool } from './tools/unlinkSpecScreens.js';
 
 const server = new McpServer({ name: 'work-tracker', version: '0.1.0' });
 
@@ -124,6 +126,8 @@ registerDeleteSpecTransitionTool(server);
 registerGetSpecJourneyTool(server);
 registerLinkSpecTool(server);
 registerUnlinkSpecTool(server);
+registerLinkSpecScreensTool(server);
+registerUnlinkSpecScreensTool(server);
 
 async function main() {
   const transport = new StdioServerTransport();

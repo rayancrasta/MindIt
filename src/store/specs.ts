@@ -257,6 +257,64 @@ export function deleteSpecTransition(
   return updateSpecScreen(project, platform, specPath, { [key]: list } as SpecScreenInput);
 }
 
+/** Removes the transition matching both label and target, no-op if it's already gone — used by unlinkSpecScreens so a partially-drifted link doesn't throw. */
+function removeMatchingTransition(
+  project: string,
+  platform: SpecPlatform,
+  specPath: string,
+  direction: 'entry' | 'exit',
+  label: string,
+  expectedTarget: string
+): SpecScreen {
+  const screen = readSpecScreen(project, platform, specPath);
+  const key = direction === 'entry' ? 'entryPoints' : 'exitPoints';
+  const list = screen[key];
+  const idx = list.findIndex((t) => t.label === label && t.target === expectedTarget);
+  if (idx < 0) return screen;
+  const next = list.filter((_, i) => i !== idx);
+  return updateSpecScreen(project, platform, specPath, { [key]: next } as SpecScreenInput);
+}
+
+export interface SpecLinkInput {
+  from: string;
+  to: string;
+  label: string;
+  /** Label for the reverse entry point created on `to`; defaults to `label`. */
+  backLabel?: string;
+}
+
+export interface SpecLinkResult {
+  from: SpecScreen;
+  to: SpecScreen;
+}
+
+/**
+ * Links two screens across journeys/folders in one step: an exit point on `from` targeting `to`, and a matching
+ * entry point back on `to` targeting `from`. Keeps both sides in sync so a cross-journey link never has to be
+ * hand-maintained on each screen separately.
+ */
+export function linkSpecScreens(project: string, platform: SpecPlatform, input: SpecLinkInput): SpecLinkResult {
+  const { relPath: fromRel } = resolveSpecFile(project, platform, input.from);
+  const { relPath: toRel } = resolveSpecFile(project, platform, input.to);
+  if (fromRel === toRel) {
+    throw new Error('Cannot link a screen to itself.');
+  }
+  const backLabel = input.backLabel?.trim() || input.label;
+  const from = setSpecTransition(project, platform, fromRel, 'exit', { label: input.label, target: toRel });
+  const to = setSpecTransition(project, platform, toRel, 'entry', { label: backLabel, target: fromRel });
+  return { from, to };
+}
+
+/** Removes a link created by linkSpecScreens from both sides. No-op on a side whose transition is already gone. */
+export function unlinkSpecScreens(project: string, platform: SpecPlatform, input: SpecLinkInput): SpecLinkResult {
+  const { relPath: fromRel } = resolveSpecFile(project, platform, input.from);
+  const { relPath: toRel } = resolveSpecFile(project, platform, input.to);
+  const backLabel = input.backLabel?.trim() || input.label;
+  const from = removeMatchingTransition(project, platform, fromRel, 'exit', input.label, toRel);
+  const to = removeMatchingTransition(project, platform, toRel, 'entry', backLabel, fromRel);
+  return { from, to };
+}
+
 export function listSpecFolder(
   project: string,
   platform: SpecPlatform,
