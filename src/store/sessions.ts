@@ -12,14 +12,24 @@ function parseBlock(project: string, blockText: string): SessionEntry {
     if (idx === -1) continue;
     const key = line.slice(0, idx).trim();
     const value = line.slice(idx + 1).trim();
-    if (['done', 'blockers', 'next'].includes(key) && value) fields[key] = value;
+    if (['done', 'blockers', 'next', 'items'].includes(key) && value) fields[key] = value;
   }
-  return { project, timestamp, done: fields.done ?? '', blockers: fields.blockers, next: fields.next };
+  const items = fields.items
+    ? fields.items.split(',').map((s) => s.trim()).filter(Boolean)
+    : undefined;
+  return {
+    project,
+    timestamp,
+    done: fields.done ?? '',
+    blockers: fields.blockers,
+    next: fields.next,
+    ...(items && items.length ? { items } : {}),
+  };
 }
 
 export function appendSessionEntry(
   project: string,
-  entry: { done: string; blockers?: string; next?: string }
+  entry: { done: string; blockers?: string; next?: string; items?: string[] }
 ): string {
   const p = logPath(project);
   const slug = slugify(project);
@@ -32,6 +42,7 @@ export function appendSessionEntry(
   let block = `\n\n## ${timestamp}\n\ndone: ${entry.done}\n`;
   if (entry.blockers) block += `blockers: ${entry.blockers}\n`;
   if (entry.next) block += `next: ${entry.next}\n`;
+  if (entry.items && entry.items.length) block += `items: ${entry.items.join(', ')}\n`;
   fs.writeFileSync(p, header + block + rest, 'utf8');
   return timestamp;
 }

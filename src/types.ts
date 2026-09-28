@@ -206,6 +206,7 @@ export interface SessionEntry {
   done: string;
   blockers?: string;
   next?: string;
+  items?: string[];
 }
 
 export type DeploymentStatus = 'success' | 'failed' | 'rolled_back';

@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { listItems } from '../store/items.js';
+import { findItemGlobal, listItems } from '../store/items.js';
 import { listProjectSlugs } from '../store/paths.js';
 import { getLastSessionEntry } from '../store/sessions.js';
 import { getLastDeploymentNote } from '../store/deployments.js';
@@ -13,13 +13,24 @@ function pendingItems(type: ItemType, project: string) {
   return listItems(type, project).filter((i) => PENDING_STATUSES.includes(i.status));
 }
 
+function resolveTouchedItems(ids: string[] | undefined) {
+  if (!ids || !ids.length) return undefined;
+  const resolved = ids
+    .map((id) => findItemGlobal(id))
+    .filter((found): found is NonNullable<typeof found> => found !== null)
+    .map((found) => ({ id: found.item.id, type: found.type, title: found.item.title, status: found.item.status }));
+  return resolved.length ? resolved : undefined;
+}
+
 function resumeForProject(project: string) {
+  const lastSession = getLastSessionEntry(project);
   return {
     pendingFeatures: pendingItems('feature', project),
     pendingStories: pendingItems('story', project),
     pendingTasks: pendingItems('task', project),
     pendingBugs: pendingItems('bug', project),
-    lastSession: getLastSessionEntry(project),
+    lastSession,
+    lastSessionTouchedItems: resolveTouchedItems(lastSession?.items),
     lastDeployment: getLastDeploymentNote(project),
   };
 }

@@ -14,10 +14,14 @@ export function registerLogSessionTool(server: McpServer): void {
         done: z.string().min(1).describe('What was done this session'),
         blockers: z.string().optional().describe('Anything blocking progress'),
         next: z.string().optional().describe('Suggested next step'),
+        items: z
+          .array(z.string())
+          .optional()
+          .describe('IDs of features/stories/tasks/bugs touched this session, e.g. ["12", "15"]'),
       },
     },
-    safeHandler(({ project, done, blockers, next }) => {
-      const timestamp = appendSessionEntry(project, { done, blockers, next });
+    safeHandler(({ project, done, blockers, next, items }) => {
+      const timestamp = appendSessionEntry(project, { done, blockers, next, items });
       return `Logged session entry for ${project} at ${timestamp}`;
     })
   );

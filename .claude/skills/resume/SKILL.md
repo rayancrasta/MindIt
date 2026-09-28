@@ -12,7 +12,8 @@ Narrate the JSON result in this fixed order, short and plain:
 3. Pending tasks (if any)
 4. Pending bugs (if any)
 5. The last session note (`lastSession.done`, plus `blockers`/`next` if present)
-6. Exactly one suggested next step, based on `lastSession.next` if it exists, otherwise your best read of what's most pending
+6. If `lastSessionTouchedItems` is present, one line naming exactly what was touched last session (e.g. "last touched: Story #15 'Add step-up modal' (in_progress), Task #23 'Write race condition test' (new)") — this is the precise handoff context, state it plainly rather than paraphrasing
+7. Exactly one suggested next step, based on `lastSession.next` if it exists, otherwise your best read of what's most pending
 
 If the user asked specifically for counts/metrics rather than a recap ("what's the status", "how many open X"), call `get_status` instead and just report the numbers.
 
