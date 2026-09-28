@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { listItems } from '../store/items.js';
+import { listItems, resolveItemRefs } from '../store/items.js';
 import { listProjectSlugs } from '../store/paths.js';
 import { getLastSessionEntry } from '../store/sessions.js';
 import { getLastDeploymentNote } from '../store/deployments.js';
@@ -14,12 +14,14 @@ function pendingItems(type: ItemType, project: string) {
 }
 
 function resumeForProject(project: string) {
+  const lastSession = getLastSessionEntry(project);
   return {
     pendingFeatures: pendingItems('feature', project),
     pendingStories: pendingItems('story', project),
     pendingTasks: pendingItems('task', project),
     pendingBugs: pendingItems('bug', project),
-    lastSession: getLastSessionEntry(project),
+    lastSession,
+    lastSessionTouchedItems: resolveItemRefs(lastSession?.items),
     lastDeployment: getLastDeploymentNote(project),
   };
 }

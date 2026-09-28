@@ -34,6 +34,7 @@ interface BaseItem {
   updated: string;
   notes?: string;
   comments?: Comment[];
+  specs?: string[];
 }
 
 export interface Feature extends BaseItem {
@@ -77,6 +78,16 @@ export interface SessionEntry {
   done: string;
   blockers?: string;
   next?: string;
+  items?: string[];
+  /** Only present when the server resolved `items` for display; not sent back on create. */
+  touchedItems?: ItemRef[];
+}
+
+export interface ItemRef {
+  id: string;
+  type: ItemType;
+  title: string;
+  status: ItemStatus;
 }
 
 export interface WikiPage {
@@ -117,9 +128,13 @@ export interface DeploymentNote {
   updated: string;
 }
 
+export type DiagramKind = 'sequence' | 'mermaid';
+export const DIAGRAM_KINDS: DiagramKind[] = ['sequence', 'mermaid'];
+
 export interface Diagram {
   path: string;
   title: string;
+  kind: DiagramKind;
   content: string;
   created: string;
   updated: string;
@@ -130,13 +145,129 @@ export interface DiagramTreeNode {
   path: string;
   type: 'folder' | 'page';
   title?: string;
+  kind?: DiagramKind;
   updated?: string;
   children?: DiagramTreeNode[];
 }
 
 export interface DiagramFolderListing {
   folders: string[];
+  pages: { path: string; title: string; kind: DiagramKind; updated: string }[];
+}
+
+export interface SchemaForeignKey {
+  table: string;
+  column: string;
+}
+
+export interface SchemaColumn {
+  name: string;
+  type: string;
+  nullable?: boolean;
+  primaryKey?: boolean;
+  foreignKey?: SchemaForeignKey;
+}
+
+export interface SchemaTable {
+  path: string;
+  title: string;
+  description: string;
+  columns: SchemaColumn[];
+  created: string;
+  updated: string;
+}
+
+export interface SchemaTreeNode {
+  name: string;
+  path: string;
+  type: 'folder' | 'page';
+  title?: string;
+  updated?: string;
+  children?: SchemaTreeNode[];
+}
+
+export interface SchemaFolderListing {
+  folders: string[];
   pages: { path: string; title: string; updated: string }[];
+}
+
+export type SpecPlatform = 'web' | 'mobile';
+export const SPEC_PLATFORMS: SpecPlatform[] = ['web', 'mobile'];
+
+export type SpecStatus = 'draft' | 'in_review' | 'approved';
+export const SPEC_STATUSES: SpecStatus[] = ['draft', 'in_review', 'approved'];
+
+export type SpecTestType = 'unit' | 'integration';
+export const SPEC_TEST_TYPES: SpecTestType[] = ['unit', 'integration'];
+
+export interface SpecTransition {
+  label: string;
+  target?: string;
+  external?: string;
+}
+
+export interface SpecTestCase {
+  type: SpecTestType;
+  description: string;
+}
+
+export interface SpecScreen {
+  path: string;
+  title: string;
+  platform: SpecPlatform;
+  designUrl?: string;
+  status: SpecStatus;
+  tags?: string[];
+  entryPoints: SpecTransition[];
+  exitPoints: SpecTransition[];
+  acceptanceCriteria?: string[];
+  testCases?: SpecTestCase[];
+  codeRefs?: string[];
+  dataRefs?: string[];
+  description: string;
+  created: string;
+  updated: string;
+}
+
+export interface SpecLinkInput {
+  from: string;
+  to: string;
+  label: string;
+  backLabel?: string;
+}
+
+export interface SpecLinkResult {
+  from: SpecScreen;
+  to: SpecScreen;
+}
+
+export interface SpecTreeNode {
+  name: string;
+  path: string;
+  type: 'folder' | 'page';
+  title?: string;
+  status?: SpecStatus;
+  updated?: string;
+  children?: SpecTreeNode[];
+}
+
+export interface SpecFolderListing {
+  folders: string[];
+  pages: { path: string; title: string; status: SpecStatus; updated: string }[];
+}
+
+export interface ProjectMeta {
+  slug: string;
+  name: string;
+  /** Absolute path holding this project's files, or null for the default location inside data/. */
+  path: string | null;
+  created: string;
+}
+
+export interface BrowseResult {
+  path: string;
+  parent: string | null;
+  directories: string[];
 }
 
 export interface ResumeData {
@@ -145,6 +276,7 @@ export interface ResumeData {
   pendingTasks: Task[];
   pendingBugs: Bug[];
   lastSession: SessionEntry | null;
+  lastSessionTouchedItems?: ItemRef[];
   lastDeployment: DeploymentNote | null;
 }
 
@@ -181,7 +313,18 @@ async function req<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 export const api = {
-  projects: () => req<string[]>('/projects'),
+  projects: {
+    list: () => req<ProjectMeta[]>('/projects'),
+    create: (data: { name: string; path?: string }) =>
+      req<ProjectMeta>('/projects', { method: 'POST', body: JSON.stringify(data) }),
+    rename: (slug: string, name: string) =>
+      req<ProjectMeta>(`/projects/${encodeURIComponent(slug)}`, { method: 'PATCH', body: JSON.stringify({ name }) }),
+    remove: (slug: string) =>
+      req<{ message: string }>(`/projects/${encodeURIComponent(slug)}`, { method: 'DELETE' }),
+  },
+  fs: {
+    browse: (dirPath?: string) => req<BrowseResult>(`/fs/browse${qs({ path: dirPath })}`),
+  },
   status: (project: string) => req<StatusCounts>(`/status${qs({ project })}`),
   resume: (project: string) => req<ResumeData>(`/resume${qs({ project })}`),
 
@@ -228,11 +371,17 @@ export const api = {
       remove: (id: string, commentId: string) =>
         req<Item>(`/items/${id}/comments/${commentId}`, { method: 'DELETE' }),
     },
+    specs: {
+      link: (id: string, platform: SpecPlatform, path: string) =>
+        req<Item>(`/items/${id}/specs/link`, { method: 'POST', body: JSON.stringify({ platform, path }) }),
+      unlink: (id: string, platform: SpecPlatform, path: string) =>
+        req<Item>(`/items/${id}/specs/link${qs({ platform, path })}`, { method: 'DELETE' }),
+    },
   },
   log: {
     list: (project: string, limit?: number) =>
       req<SessionEntry[]>(`/projects/${encodeURIComponent(project)}/log${limit ? `?limit=${limit}` : ''}`),
-    append: (project: string, entry: { done: string; blockers?: string; next?: string }) =>
+    append: (project: string, entry: { done: string; blockers?: string; next?: string; items?: string[] }) =>
       req<{ timestamp: string }>(`/projects/${encodeURIComponent(project)}/log`, {
         method: 'POST',
         body: JSON.stringify(entry),
@@ -265,6 +414,27 @@ export const api = {
         }),
       remove: (project: string, path: string) =>
         req<WikiPage>(`/projects/${encodeURIComponent(project)}/wiki/page${qs({ path })}`, { method: 'DELETE' }),
+      move: (project: string, from: string, to: string) =>
+        req<WikiPage>(`/projects/${encodeURIComponent(project)}/wiki/page/move`, {
+          method: 'POST',
+          body: JSON.stringify({ from, to }),
+        }),
+    },
+    folder: {
+      create: (project: string, path: string) =>
+        req<{ path: string }>(`/projects/${encodeURIComponent(project)}/wiki/folder`, {
+          method: 'POST',
+          body: JSON.stringify({ path }),
+        }),
+      remove: (project: string, path: string) =>
+        req<{ path: string }>(`/projects/${encodeURIComponent(project)}/wiki/folder${qs({ path })}`, {
+          method: 'DELETE',
+        }),
+      move: (project: string, from: string, to: string) =>
+        req<{ path: string }>(`/projects/${encodeURIComponent(project)}/wiki/folder/move`, {
+          method: 'POST',
+          body: JSON.stringify({ from, to }),
+        }),
     },
   },
   deployments: {
@@ -296,11 +466,11 @@ export const api = {
       req<{ message: string }>(`/deployments/${id}${qs({ project })}`, { method: 'DELETE' }),
   },
   diagrams: {
-    tree: (project: string, folder?: string) =>
-      req<DiagramFolderListing>(`/projects/${encodeURIComponent(project)}/diagrams/tree${qs({ folder })}`),
-    fullTree: (project: string, folder?: string) =>
+    tree: (project: string, folder?: string, kind?: DiagramKind) =>
+      req<DiagramFolderListing>(`/projects/${encodeURIComponent(project)}/diagrams/tree${qs({ folder, kind })}`),
+    fullTree: (project: string, folder?: string, kind?: DiagramKind) =>
       req<DiagramTreeNode[]>(
-        `/projects/${encodeURIComponent(project)}/diagrams/tree${qs({ folder, recursive: 'true' })}`
+        `/projects/${encodeURIComponent(project)}/diagrams/tree${qs({ folder, kind, recursive: 'true' })}`
       ),
     page: {
       get: (project: string, path: string) =>
@@ -317,6 +487,106 @@ export const api = {
         }),
       remove: (project: string, path: string) =>
         req<Diagram>(`/projects/${encodeURIComponent(project)}/diagrams/page${qs({ path })}`, { method: 'DELETE' }),
+    },
+  },
+  schemas: {
+    tree: (project: string, folder?: string) =>
+      req<SchemaFolderListing>(`/projects/${encodeURIComponent(project)}/schemas/tree${qs({ folder })}`),
+    fullTree: (project: string, folder?: string) =>
+      req<SchemaTreeNode[]>(
+        `/projects/${encodeURIComponent(project)}/schemas/tree${qs({ folder, recursive: 'true' })}`
+      ),
+    erd: (project: string, folder?: string) =>
+      req<{ mermaid: string }>(`/projects/${encodeURIComponent(project)}/schemas/erd${qs({ folder })}`),
+    tables: (project: string, folder?: string) =>
+      req<SchemaTable[]>(`/projects/${encodeURIComponent(project)}/schemas/tables${qs({ folder })}`),
+    table: {
+      get: (project: string, path: string) =>
+        req<SchemaTable>(`/projects/${encodeURIComponent(project)}/schemas/table${qs({ path })}`),
+      create: (project: string, data: { path: string; columns?: SchemaColumn[]; description?: string; title?: string }) =>
+        req<SchemaTable>(`/projects/${encodeURIComponent(project)}/schemas/table`, {
+          method: 'POST',
+          body: JSON.stringify(data),
+        }),
+      update: (project: string, path: string, columns: SchemaColumn[], description: string) =>
+        req<SchemaTable>(`/projects/${encodeURIComponent(project)}/schemas/table`, {
+          method: 'PUT',
+          body: JSON.stringify({ path, columns, description }),
+        }),
+      remove: (project: string, path: string) =>
+        req<SchemaTable>(`/projects/${encodeURIComponent(project)}/schemas/table${qs({ path })}`, { method: 'DELETE' }),
+    },
+  },
+  specs: {
+    tree: (project: string, platform: SpecPlatform, folder?: string) =>
+      req<SpecFolderListing>(`/projects/${encodeURIComponent(project)}/specs/${platform}/tree${qs({ folder })}`),
+    fullTree: (project: string, platform: SpecPlatform, folder?: string) =>
+      req<SpecTreeNode[]>(
+        `/projects/${encodeURIComponent(project)}/specs/${platform}/tree${qs({ folder, recursive: 'true' })}`
+      ),
+    journey: (project: string, platform: SpecPlatform, folder?: string) =>
+      req<{ mermaid: string }>(`/projects/${encodeURIComponent(project)}/specs/${platform}/journey${qs({ folder })}`),
+    screens: (project: string, platform: SpecPlatform, folder?: string) =>
+      req<SpecScreen[]>(`/projects/${encodeURIComponent(project)}/specs/${platform}/screens${qs({ folder })}`),
+    screen: {
+      get: (project: string, platform: SpecPlatform, path: string) =>
+        req<SpecScreen>(`/projects/${encodeURIComponent(project)}/specs/${platform}/screen${qs({ path })}`),
+      references: (project: string, platform: SpecPlatform, path: string) =>
+        req<Item[]>(`/projects/${encodeURIComponent(project)}/specs/${platform}/screen/references${qs({ path })}`),
+      create: (
+        project: string,
+        platform: SpecPlatform,
+        data: { path: string } & Partial<Omit<SpecScreen, 'path' | 'platform' | 'created' | 'updated'>>
+      ) =>
+        req<SpecScreen>(`/projects/${encodeURIComponent(project)}/specs/${platform}/screen`, {
+          method: 'POST',
+          body: JSON.stringify(data),
+        }),
+      update: (
+        project: string,
+        platform: SpecPlatform,
+        path: string,
+        data: Partial<Omit<SpecScreen, 'path' | 'platform' | 'created' | 'updated'>>
+      ) =>
+        req<SpecScreen>(`/projects/${encodeURIComponent(project)}/specs/${platform}/screen`, {
+          method: 'PUT',
+          body: JSON.stringify({ path, ...data }),
+        }),
+      remove: (project: string, platform: SpecPlatform, path: string) =>
+        req<SpecScreen>(`/projects/${encodeURIComponent(project)}/specs/${platform}/screen${qs({ path })}`, {
+          method: 'DELETE',
+        }),
+    },
+    transition: {
+      set: (project: string, platform: SpecPlatform, path: string, direction: 'entry' | 'exit', transition: SpecTransition) =>
+        req<SpecScreen>(`/projects/${encodeURIComponent(project)}/specs/${platform}/screen/transition`, {
+          method: 'PUT',
+          body: JSON.stringify({ path, direction, transition }),
+        }),
+      remove: (project: string, platform: SpecPlatform, path: string, direction: 'entry' | 'exit', label: string) =>
+        req<SpecScreen>(
+          `/projects/${encodeURIComponent(project)}/specs/${platform}/screen/transition${qs({ path, direction, label })}`,
+          { method: 'DELETE' }
+        ),
+    },
+    link: {
+      /** Links two screens across journeys/folders in one call: an exit point on `from` targeting `to`, and a matching entry point back on `to`. */
+      create: (project: string, platform: SpecPlatform, input: SpecLinkInput) =>
+        req<SpecLinkResult>(`/projects/${encodeURIComponent(project)}/specs/${platform}/screen/link`, {
+          method: 'POST',
+          body: JSON.stringify(input),
+        }),
+      /** Removes a link created by link.create from both sides. */
+      remove: (project: string, platform: SpecPlatform, input: SpecLinkInput) =>
+        req<SpecLinkResult>(
+          `/projects/${encodeURIComponent(project)}/specs/${platform}/screen/link${qs({
+            from: input.from,
+            to: input.to,
+            label: input.label,
+            backLabel: input.backLabel,
+          })}`,
+          { method: 'DELETE' }
+        ),
     },
   },
 };

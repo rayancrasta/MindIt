@@ -95,8 +95,12 @@ export function updateWikiPage(project: string, wikiPath: string, content: strin
     throw new Error(`No wiki page "${relPath}" in project "${project}".`);
   }
   const { data } = matter(fs.readFileSync(absPath, 'utf8'));
-  data.updated = new Date().toISOString();
-  fs.writeFileSync(absPath, matter.stringify(content, data), 'utf8');
+  // gray-matter caches parsed frontmatter keyed by the raw file content, and hands back a
+  // reference to the cached object — mutating `data` in place corrupts that cache entry, so any
+  // later file whose raw content happens to match would get this stale data back. Build a new
+  // object instead of writing through the returned one.
+  const nextData = { ...data, updated: new Date().toISOString() };
+  fs.writeFileSync(absPath, matter.stringify(content, nextData), 'utf8');
   return parseWikiFile(fs.readFileSync(absPath, 'utf8'), relPath);
 }
 
@@ -108,8 +112,9 @@ export function appendWikiPage(project: string, wikiPath: string, content: strin
   }
   const { data, content: existing } = matter(fs.readFileSync(absPath, 'utf8'));
   const merged = existing.trim() ? `${existing.trim()}\n\n${content}` : content;
-  data.updated = new Date().toISOString();
-  fs.writeFileSync(absPath, matter.stringify(merged, data), 'utf8');
+  // See the note in updateWikiPage — never mutate gray-matter's returned `data` in place.
+  const nextData = { ...data, updated: new Date().toISOString() };
+  fs.writeFileSync(absPath, matter.stringify(merged, nextData), 'utf8');
   return parseWikiFile(fs.readFileSync(absPath, 'utf8'), relPath);
 }
 
@@ -126,6 +131,68 @@ export function deleteWikiPage(project: string, wikiPath: string): WikiPage {
   const { absPath } = resolveWikiFile(project, wikiPath);
   fs.unlinkSync(absPath);
   return page;
+}
+
+/** Moves or renames a page. Renaming is just a move within the same parent folder. */
+export function moveWikiPage(project: string, fromPath: string, toPath: string): WikiPage {
+  const { absPath: fromAbs, relPath: fromRel } = resolveWikiFile(project, fromPath);
+  const { absPath: toAbs, relPath: toRel } = resolveWikiFile(project, toPath);
+  if (!fs.existsSync(fromAbs)) {
+    throw new Error(`No wiki page "${fromRel}" in project "${project}".`);
+  }
+  if (fs.existsSync(toAbs)) {
+    throw new Error(`A wiki page already exists at "${toRel}".`);
+  }
+  fs.mkdirSync(path.dirname(toAbs), { recursive: true });
+  fs.renameSync(fromAbs, toAbs);
+  // Keep the displayed title in sync with the new filename, Obsidian-style — otherwise a
+  // renamed page keeps showing its old title forever. Built as a new object rather than
+  // mutating gray-matter's returned `data` — see the note in updateWikiPage.
+  const { data, content } = matter(fs.readFileSync(toAbs, 'utf8'));
+  const nextData = { ...data, title: toRel.split('/').pop() };
+  fs.writeFileSync(toAbs, matter.stringify(content, nextData), 'utf8');
+  return parseWikiFile(fs.readFileSync(toAbs, 'utf8'), toRel);
+}
+
+/** Creates an empty folder. Unlike pages, folders are meaningful even with nothing in them yet. */
+export function createWikiFolder(project: string, folderPath: string): { path: string } {
+  const { absPath, relPath } = resolveWikiFolder(project, folderPath);
+  if (!relPath) throw new Error('Folder path cannot be empty.');
+  if (fs.existsSync(absPath)) {
+    throw new Error(`A folder or page already exists at "${relPath}".`);
+  }
+  fs.mkdirSync(absPath, { recursive: true });
+  return { path: relPath };
+}
+
+/** Deletes a folder and everything inside it. */
+export function deleteWikiFolder(project: string, folderPath: string): { path: string } {
+  const { absPath, relPath } = resolveWikiFolder(project, folderPath);
+  if (!relPath) throw new Error('Cannot delete the wiki root.');
+  if (!fs.existsSync(absPath)) {
+    throw new Error(`No folder "${relPath}" in project "${project}".`);
+  }
+  fs.rmSync(absPath, { recursive: true, force: true });
+  return { path: relPath };
+}
+
+/** Moves or renames a folder. Renaming is just a move within the same parent folder. */
+export function moveWikiFolder(project: string, fromPath: string, toPath: string): { path: string } {
+  const { absPath: fromAbs, relPath: fromRel } = resolveWikiFolder(project, fromPath);
+  const { absPath: toAbs, relPath: toRel } = resolveWikiFolder(project, toPath);
+  if (!fromRel) throw new Error('Cannot move the wiki root.');
+  if (!fs.existsSync(fromAbs)) {
+    throw new Error(`No folder "${fromRel}" in project "${project}".`);
+  }
+  if (fs.existsSync(toAbs)) {
+    throw new Error(`A folder or page already exists at "${toRel}".`);
+  }
+  if (toAbs === fromAbs || toAbs.startsWith(fromAbs + path.sep)) {
+    throw new Error('Cannot move a folder into itself.');
+  }
+  fs.mkdirSync(path.dirname(toAbs), { recursive: true });
+  fs.renameSync(fromAbs, toAbs);
+  return { path: toRel };
 }
 
 export function listWikiFolder(
@@ -161,7 +228,6 @@ function buildTree(absDir: string, relDir: string): WikiTreeNode[] {
     if (entry.isDirectory()) {
       const relPath = relDir ? `${relDir}/${entry.name}` : entry.name;
       const children = buildTree(path.join(absDir, entry.name), relPath);
-      if (children.length === 0) continue; // empty folders aren't meaningful nodes, same as a real filesystem
       nodes.push({ name: entry.name, path: relPath, type: 'folder', children });
     } else if (entry.isFile() && entry.name.endsWith('.md')) {
       const relPath = (relDir ? `${relDir}/${entry.name}` : entry.name).replace(/\.md$/, '');

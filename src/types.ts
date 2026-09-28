@@ -29,6 +29,7 @@ export interface Feature {
   updated: string;
   notes?: string;
   comments?: Comment[];
+  specs?: string[];
 }
 
 export interface Story {
@@ -43,6 +44,7 @@ export interface Story {
   notes?: string;
   links?: string[];
   comments?: Comment[];
+  specs?: string[];
 }
 
 export interface Task {
@@ -56,6 +58,7 @@ export interface Task {
   updated: string;
   notes?: string;
   comments?: Comment[];
+  specs?: string[];
 }
 
 export interface Bug {
@@ -69,6 +72,7 @@ export interface Bug {
   updated: string;
   notes?: string;
   comments?: Comment[];
+  specs?: string[];
 }
 
 export type Item = Feature | Story | Task | Bug;
@@ -90,9 +94,14 @@ export interface WikiTreeNode {
   children?: WikiTreeNode[];
 }
 
+export type DiagramKind = 'sequence' | 'mermaid';
+
+export const DIAGRAM_KINDS: DiagramKind[] = ['sequence', 'mermaid'];
+
 export interface Diagram {
   path: string;
   title: string;
+  kind: DiagramKind;
   content: string;
   created: string;
   updated: string;
@@ -103,8 +112,92 @@ export interface DiagramTreeNode {
   path: string;
   type: 'folder' | 'page';
   title?: string;
+  kind?: DiagramKind;
   updated?: string;
   children?: DiagramTreeNode[];
+}
+
+export interface SchemaForeignKey {
+  table: string;
+  column: string;
+}
+
+export interface SchemaColumn {
+  name: string;
+  type: string;
+  nullable?: boolean;
+  primaryKey?: boolean;
+  foreignKey?: SchemaForeignKey;
+}
+
+export interface SchemaTable {
+  path: string;
+  title: string;
+  description: string;
+  columns: SchemaColumn[];
+  created: string;
+  updated: string;
+}
+
+export interface SchemaTreeNode {
+  name: string;
+  path: string;
+  type: 'folder' | 'page';
+  title?: string;
+  updated?: string;
+  children?: SchemaTreeNode[];
+}
+
+export type SpecPlatform = 'web' | 'mobile';
+
+export const SPEC_PLATFORMS: SpecPlatform[] = ['web', 'mobile'];
+
+export type SpecStatus = 'draft' | 'in_review' | 'approved';
+
+export const SPEC_STATUSES: SpecStatus[] = ['draft', 'in_review', 'approved'];
+
+export type SpecTestType = 'unit' | 'integration';
+
+export const SPEC_TEST_TYPES: SpecTestType[] = ['unit', 'integration'];
+
+/** A single entry/exit point on a screen — either a transition to another screen in the same platform tree, or an external trigger with no screen on the other end (app launch, push notification, deep link, etc). */
+export interface SpecTransition {
+  label: string;
+  target?: string;
+  external?: string;
+}
+
+export interface SpecTestCase {
+  type: SpecTestType;
+  description: string;
+}
+
+export interface SpecScreen {
+  path: string;
+  title: string;
+  platform: SpecPlatform;
+  designUrl?: string;
+  status: SpecStatus;
+  tags?: string[];
+  entryPoints: SpecTransition[];
+  exitPoints: SpecTransition[];
+  acceptanceCriteria?: string[];
+  testCases?: SpecTestCase[];
+  codeRefs?: string[];
+  dataRefs?: string[];
+  description: string;
+  created: string;
+  updated: string;
+}
+
+export interface SpecTreeNode {
+  name: string;
+  path: string;
+  type: 'folder' | 'page';
+  title?: string;
+  status?: SpecStatus;
+  updated?: string;
+  children?: SpecTreeNode[];
 }
 
 export interface SessionEntry {
@@ -113,6 +206,15 @@ export interface SessionEntry {
   done: string;
   blockers?: string;
   next?: string;
+  items?: string[];
+}
+
+/** A resolved snapshot of an item referenced elsewhere (e.g. by a session entry), for display. */
+export interface ItemRef {
+  id: string;
+  type: ItemType;
+  title: string;
+  status: ItemStatus;
 }
 
 export type DeploymentStatus = 'success' | 'failed' | 'rolled_back';

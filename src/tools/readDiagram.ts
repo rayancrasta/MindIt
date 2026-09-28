@@ -2,7 +2,7 @@ import { z } from 'zod';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { readDiagram } from '../store/diagrams.js';
 import { safeHandler } from './common.js';
-import { diagramLink } from './diagramLink.js';
+import { diagramMarkdownLink } from './diagramLink.js';
 
 export function registerReadDiagramTool(server: McpServer): void {
   server.registerTool(
@@ -18,7 +18,7 @@ export function registerReadDiagramTool(server: McpServer): void {
     safeHandler(({ project, path }) => {
       const diagram = readDiagram(project, path);
       return (
-        `# ${diagram.title}\n(${diagramLink(project, diagram.path)}, updated ${diagram.updated})\n\n` +
+        `# ${diagram.title}\n(${diagram.kind}, ${diagramMarkdownLink(project, diagram.path, diagram.kind, 'open in app')}, updated ${diagram.updated})\n\n` +
         (diagram.content || '_This diagram is empty._')
       );
     })

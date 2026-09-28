@@ -5,13 +5,9 @@ import { useProject } from '../context/ProjectContext';
 import { KanbanBoard, type Lane } from '../components/KanbanBoard';
 import { CreateItemModal } from '../components/CreateItemModal';
 
-type BoardMode = 'stories' | 'tasks';
-
 export function Board() {
   const { project } = useProject();
   const qc = useQueryClient();
-  const [mode, setMode] = useState<BoardMode>('stories');
-  const [selectedStory, setSelectedStory] = useState<string | null>(null);
   const [createModal, setCreateModal] = useState<null | { type: ItemType; parent?: string }>(null);
   const [showCompleted, setShowCompleted] = useState(false);
 
@@ -28,11 +24,6 @@ export function Board() {
   const stories = storiesQ.data ?? [];
   const tasks = tasksQ.data ?? [];
   const bugs = bugsQ.data ?? [];
-
-  const story = stories.find((s) => s.id === selectedStory) ?? null;
-  const scopedItems: Item[] = story
-    ? [...tasks.filter((t) => t.story === story.id), ...bugs.filter((b) => b.story === story.id)]
-    : [];
 
   async function handleDrop(item: Item, status: ItemStatus, keys: unknown[][]) {
     try {
@@ -72,6 +63,7 @@ export function Board() {
   const featureLane = (f: (typeof features)[number]): Lane => ({
     key: f.id,
     label: `${f.title} (#${f.id})`,
+    featureId: f.id,
     items: stories.filter((s) => s.feature === f.id) as Item[],
   });
 
@@ -83,103 +75,41 @@ export function Board() {
 
   return (
     <div>
-      <div className="mb-4 flex flex-wrap items-center gap-3">
-        <h2 className="text-lg font-semibold tracking-tight">Board — {project}</h2>
-        <div className="flex overflow-hidden rounded-full border border-neutral-300 bg-white p-0.5 text-sm dark:border-neutral-600 dark:bg-neutral-800">
+      <KanbanBoard
+        lanes={storyLanes}
+        onDrop={(item, status) => handleDrop(item, status, [['stories', project]])}
+        onAddToLane={(featureId) => setCreateModal({ type: 'story', parent: featureId })}
+        childrenByParent={childrenByParent}
+        onToggleChild={toggleChildDone}
+      />
+      {completedFeatures.length > 0 && (
+        <div className="mt-6">
           <button
-            onClick={() => setMode('stories')}
-            className={`rounded-full px-3 py-1 font-medium transition-colors ${
-              mode === 'stories'
-                ? 'bg-blue-600 text-white shadow-sm dark:bg-blue-500'
-                : 'text-neutral-600 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-700'
-            }`}
+            onClick={() => setShowCompleted((v) => !v)}
+            className="flex items-center gap-1.5 text-sm font-semibold text-neutral-600 hover:text-neutral-900 dark:text-neutral-300 dark:hover:text-neutral-100"
+            aria-expanded={showCompleted}
           >
-            Stories
+            <svg
+              viewBox="0 0 20 20"
+              fill="currentColor"
+              className={`h-3.5 w-3.5 shrink-0 transition-transform ${showCompleted ? '' : '-rotate-90'}`}
+            >
+              <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clipRule="evenodd" />
+            </svg>
+            <span>Show Completed ({completedFeatures.length})</span>
           </button>
-          <button
-            onClick={() => setMode('tasks')}
-            className={`rounded-full px-3 py-1 font-medium transition-colors ${
-              mode === 'tasks'
-                ? 'bg-blue-600 text-white shadow-sm dark:bg-blue-500'
-                : 'text-neutral-600 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-700'
-            }`}
-          >
-            Tasks &amp; Bugs
-          </button>
-        </div>
-        {mode === 'tasks' && (
-          <select
-            value={selectedStory ?? ''}
-            onChange={(e) => setSelectedStory(e.target.value || null)}
-            className="input w-auto py-1"
-          >
-            <option value="">Select a story…</option>
-            {stories.map((s) => (
-              <option key={s.id} value={s.id}>
-                #{s.id} {s.title}
-              </option>
-            ))}
-          </select>
-        )}
-        {mode === 'tasks' && story && (
-          <div className="flex gap-2">
-            <button onClick={() => setCreateModal({ type: 'task', parent: story.id })} className="btn-secondary">
-              + task
-            </button>
-            <button onClick={() => setCreateModal({ type: 'bug', parent: story.id })} className="btn-secondary">
-              + bug
-            </button>
-          </div>
-        )}
-      </div>
-
-      {mode === 'stories' ? (
-        <>
-          <KanbanBoard
-            lanes={storyLanes}
-            onDrop={(item, status) => handleDrop(item, status, [['stories', project]])}
-            onAddToLane={(featureId) => setCreateModal({ type: 'story', parent: featureId })}
-            childrenByParent={childrenByParent}
-            onToggleChild={toggleChildDone}
-          />
-          {completedFeatures.length > 0 && (
-            <div className="mt-6">
-              <button
-                onClick={() => setShowCompleted((v) => !v)}
-                className="flex items-center gap-1.5 text-sm font-semibold text-neutral-600 hover:text-neutral-900 dark:text-neutral-300 dark:hover:text-neutral-100"
-                aria-expanded={showCompleted}
-              >
-                <svg
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                  className={`h-3.5 w-3.5 shrink-0 transition-transform ${showCompleted ? '' : '-rotate-90'}`}
-                >
-                  <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clipRule="evenodd" />
-                </svg>
-                <span>Show Completed ({completedFeatures.length})</span>
-              </button>
-              {showCompleted && (
-                <div className="mt-3">
-                  <KanbanBoard
-                    lanes={completedLanes}
-                    onDrop={(item, status) => handleDrop(item, status, [['stories', project]])}
-                    onAddToLane={(featureId) => setCreateModal({ type: 'story', parent: featureId })}
-                    childrenByParent={childrenByParent}
-                    onToggleChild={toggleChildDone}
-                  />
-                </div>
-              )}
+          {showCompleted && (
+            <div className="mt-3">
+              <KanbanBoard
+                lanes={completedLanes}
+                onDrop={(item, status) => handleDrop(item, status, [['stories', project]])}
+                onAddToLane={(featureId) => setCreateModal({ type: 'story', parent: featureId })}
+                childrenByParent={childrenByParent}
+                onToggleChild={toggleChildDone}
+              />
             </div>
           )}
-        </>
-      ) : story ? (
-        <KanbanBoard
-          lanes={[{ key: story.id, label: `${story.title} (#${story.id})`, items: scopedItems, addable: false, defaultCollapsed: false }]}
-          onDrop={(item, status) => handleDrop(item, status, [['tasks', project], ['bugs', project]])}
-          onToggleItem={toggleChildDone}
-        />
-      ) : (
-        <p className="text-neutral-500">Pick a story above to see its task/bug board.</p>
+        </div>
       )}
 
       {createModal && (

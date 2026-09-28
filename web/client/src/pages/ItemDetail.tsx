@@ -1,11 +1,28 @@
 import { useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { api, ApiError, isDone, ITEM_STATUSES, type Bug, type ItemStatus, type Story, type Task } from '../api';
+import {
+  api,
+  ApiError,
+  isDone,
+  ITEM_STATUSES,
+  SPEC_PLATFORMS,
+  type Bug,
+  type ItemStatus,
+  type SpecPlatform,
+  type Story,
+  type Task,
+} from '../api';
 import { StatusBadge } from '../components/StatusBadge';
 import { ItemTypeBadge } from '../components/ItemTypeBadge';
 import { Comments } from '../components/Comments';
 import { MarkdownBody, MarkdownField } from '../components/Markdown';
+
+/** specs are stored on the item as "platform:path" — path segments can't contain ":", so splitting on the first one is unambiguous. */
+function parseSpecKey(key: string): { platform: SpecPlatform; path: string } {
+  const idx = key.indexOf(':');
+  return { platform: (idx >= 0 ? key.slice(0, idx) : 'web') as SpecPlatform, path: idx >= 0 ? key.slice(idx + 1) : key };
+}
 
 export function ItemDetail() {
   const { id } = useParams<{ id: string }>();
@@ -15,6 +32,8 @@ export function ItemDetail() {
   const [notesDraft, setNotesDraft] = useState<string | null>(null);
   const [notesCollapsed, setNotesCollapsed] = useState(false);
   const [linkInput, setLinkInput] = useState('');
+  const [specPlatformInput, setSpecPlatformInput] = useState<SpecPlatform>('web');
+  const [specPathInput, setSpecPathInput] = useState('');
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [confirmingForce, setConfirmingForce] = useState(false);
 
@@ -95,6 +114,19 @@ export function ItemDetail() {
 
   async function removeLink(other: string) {
     await api.stories.unlink(item.id, other);
+    invalidate();
+  }
+
+  async function addSpecLink() {
+    const path = specPathInput.trim();
+    if (!path) return;
+    await api.items.specs.link(item.id, specPlatformInput, path);
+    setSpecPathInput('');
+    invalidate();
+  }
+
+  async function removeSpecLink(platform: SpecPlatform, path: string) {
+    await api.items.specs.unlink(item.id, platform, path);
     invalidate();
   }
 
@@ -233,6 +265,51 @@ export function ItemDetail() {
           </div>
         </div>
       )}
+
+      <div className="mb-6">
+        <label className="mb-1 block text-sm font-medium text-neutral-500">Linked specs</label>
+        <ul className="mb-2 space-y-1">
+          {item.specs?.length ? (
+            item.specs.map((key) => {
+              const { platform, path } = parseSpecKey(key);
+              return (
+                <li key={key} className="flex items-center gap-2 text-sm">
+                  <Link to={`/specs/${platform}/${project}/${path}`} className="text-blue-600 hover:underline dark:text-blue-400">
+                    {path} <span className="text-xs text-neutral-400">({platform})</span>
+                  </Link>
+                  <button onClick={() => removeSpecLink(platform, path)} className="text-xs text-neutral-400 hover:text-red-600">
+                    unlink
+                  </button>
+                </li>
+              );
+            })
+          ) : (
+            <li className="text-sm text-neutral-400">No linked specs.</li>
+          )}
+        </ul>
+        <div className="flex gap-2">
+          <select
+            value={specPlatformInput}
+            onChange={(e) => setSpecPlatformInput(e.target.value as SpecPlatform)}
+            className="input w-auto"
+          >
+            {SPEC_PLATFORMS.map((p) => (
+              <option key={p} value={p}>
+                {p}
+              </option>
+            ))}
+          </select>
+          <input
+            value={specPathInput}
+            onChange={(e) => setSpecPathInput(e.target.value)}
+            placeholder="Screen path, e.g. Checkout/Payment"
+            className="input flex-1"
+          />
+          <button onClick={addSpecLink} className="btn-secondary">
+            Link
+          </button>
+        </div>
+      </div>
 
       <Comments itemId={item.id} comments={item.comments ?? []} />
 

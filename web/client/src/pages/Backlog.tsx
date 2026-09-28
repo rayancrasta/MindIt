@@ -29,7 +29,7 @@ export function Backlog() {
   const bugsQ = useQuery({ queryKey: ['bugs', project], queryFn: () => api.bugs.list(project), enabled: !!project });
 
   if (!project) {
-    return <p className="text-neutral-500">Use "+ Project" in the header to start your first project.</p>;
+    return <p className="text-neutral-500">Use "+ New project" in the sidebar to start your first project.</p>;
   }
 
   const features = featuresQ.data ?? [];
@@ -58,8 +58,7 @@ export function Backlog() {
 
   return (
     <div>
-      <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-lg font-semibold tracking-tight">Backlog — {project}</h2>
+      <div className="mb-4 flex justify-end">
         <button onClick={() => setCreateModal({ type: 'feature' })} className="btn-primary">
           + New feature
         </button>

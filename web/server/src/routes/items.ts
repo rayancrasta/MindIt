@@ -1,5 +1,6 @@
 import { Router } from 'express';
-import { addComment, deleteComment, findItemGlobal, updateComment } from '../../../../src/store/items.js';
+import { addComment, deleteComment, findItemGlobal, linkSpec, unlinkSpec, updateComment } from '../../../../src/store/items.js';
+import type { SpecPlatform } from '../../../../src/types.js';
 import { updateByType, deleteByType, type GenericPatch } from '../dispatch.js';
 
 export const itemsRouter = Router();
@@ -52,6 +53,29 @@ itemsRouter.delete('/:id/comments/:commentId', (req, res) => {
   try {
     const item = deleteComment(req.params.id, req.params.commentId);
     res.json(item);
+  } catch (err) {
+    res.status(400).json({ error: err instanceof Error ? err.message : String(err) });
+  }
+});
+
+itemsRouter.post('/:id/specs/link', (req, res) => {
+  const { platform, path } = req.body ?? {};
+  if (platform !== 'web' && platform !== 'mobile') return res.status(400).json({ error: 'platform must be "web" or "mobile".' });
+  if (!path || typeof path !== 'string') return res.status(400).json({ error: 'path is required.' });
+  try {
+    res.json(linkSpec(req.params.id, platform as SpecPlatform, path));
+  } catch (err) {
+    res.status(400).json({ error: err instanceof Error ? err.message : String(err) });
+  }
+});
+
+itemsRouter.delete('/:id/specs/link', (req, res) => {
+  const platform = req.query.platform;
+  const path = req.query.path;
+  if (platform !== 'web' && platform !== 'mobile') return res.status(400).json({ error: 'platform must be "web" or "mobile".' });
+  if (!path || typeof path !== 'string') return res.status(400).json({ error: 'path is required.' });
+  try {
+    res.json(unlinkSpec(req.params.id, platform as SpecPlatform, path));
   } catch (err) {
     res.status(400).json({ error: err instanceof Error ? err.message : String(err) });
   }

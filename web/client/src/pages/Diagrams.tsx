@@ -1,10 +1,15 @@
-import { useEffect, useState, type FormEvent } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { api } from '../api';
+import { useQuery } from '@tanstack/react-query';
+import { api, DIAGRAM_KINDS, type DiagramKind } from '../api';
 import { useProject } from '../context/ProjectContext';
-import { MermaidDiagram, MermaidField } from '../components/Mermaid';
+import { MermaidDiagram } from '../components/Mermaid';
 import { Tree } from '../components/Tree';
+
+const KIND_LABELS: Record<DiagramKind, string> = {
+  sequence: 'Sequence Diagrams',
+  mermaid: 'Mermaid Diagrams',
+};
 
 function decodeSplat(splat: string | undefined): string {
   if (!splat) return '';
@@ -24,19 +29,29 @@ function encodePath(path: string): string {
 }
 
 export function Diagrams() {
-  const params = useParams<{ project?: string; '*': string }>();
+  const params = useParams<{ kind?: string; project?: string; '*': string }>();
   const navigate = useNavigate();
-  const qc = useQueryClient();
   const { project: ctxProject, setProject } = useProject();
+
+  const kind: DiagramKind = DIAGRAM_KINDS.includes(params.kind as DiagramKind)
+    ? (params.kind as DiagramKind)
+    : 'mermaid';
 
   const routeProject = params.project;
   const path = decodeSplat(params['*']);
 
   useEffect(() => {
+    if (!DIAGRAM_KINDS.includes(params.kind as DiagramKind)) {
+      navigate(`/diagrams/mermaid${routeProject ? `/${encodeURIComponent(routeProject)}` : ''}`, { replace: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [params.kind]);
+
+  useEffect(() => {
     if (routeProject) {
       if (routeProject !== ctxProject) setProject(routeProject);
     } else if (ctxProject) {
-      navigate(`/diagrams/${encodeURIComponent(ctxProject)}`, { replace: true });
+      navigate(`/diagrams/${kind}/${encodeURIComponent(ctxProject)}`, { replace: true });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [routeProject, ctxProject]);
@@ -44,8 +59,8 @@ export function Diagrams() {
   const project = routeProject ?? ctxProject;
 
   const treeQ = useQuery({
-    queryKey: ['diagram-tree', project],
-    queryFn: () => api.diagrams.fullTree(project as string),
+    queryKey: ['diagram-tree', project, kind],
+    queryFn: () => api.diagrams.fullTree(project as string, undefined, kind),
     enabled: !!project,
   });
 
@@ -55,72 +70,27 @@ export function Diagrams() {
     enabled: !!project && !!path,
   });
 
-  const [draft, setDraft] = useState<string | null>(null);
-  const [newPath, setNewPath] = useState('');
-  const [creating, setCreating] = useState(false);
-  const [createError, setCreateError] = useState<string | null>(null);
-  const [confirmDelete, setConfirmDelete] = useState(false);
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
-    setDraft(null);
-    setConfirmDelete(false);
     setCopied(false);
   }, [project, path]);
-
-  function invalidateTree() {
-    qc.invalidateQueries({ queryKey: ['diagram-tree', project] });
-  }
 
   function select(p: string) {
     if (!project) return;
     const encoded = encodePath(p);
-    navigate(`/diagrams/${encodeURIComponent(project)}${encoded ? `/${encoded}` : ''}`);
-  }
-
-  async function createPage(e: FormEvent) {
-    e.preventDefault();
-    const trimmed = newPath.trim();
-    if (!trimmed || !project) return;
-    setCreating(true);
-    setCreateError(null);
-    try {
-      const diagram = await api.diagrams.page.create(project, { path: trimmed });
-      setNewPath('');
-      invalidateTree();
-      select(diagram.path);
-    } catch (err) {
-      setCreateError(err instanceof Error ? err.message : String(err));
-    } finally {
-      setCreating(false);
-    }
-  }
-
-  async function saveDraft() {
-    if (draft === null || !project) return;
-    await api.diagrams.page.update(project, path, draft);
-    setDraft(null);
-    qc.invalidateQueries({ queryKey: ['diagram-page', project, path] });
-    invalidateTree();
-  }
-
-  async function doDelete() {
-    if (!project) return;
-    await api.diagrams.page.remove(project, path);
-    invalidateTree();
-    setConfirmDelete(false);
-    navigate(`/diagrams/${encodeURIComponent(project)}`);
+    navigate(`/diagrams/${kind}/${encodeURIComponent(project)}${encoded ? `/${encoded}` : ''}`);
   }
 
   async function copyLink() {
     if (!project) return;
-    const url = `${window.location.origin}/diagrams/${encodeURIComponent(project)}/${encodePath(path)}`;
+    const url = `${window.location.origin}/diagrams/${kind}/${encodeURIComponent(project)}/${encodePath(path)}`;
     await navigator.clipboard.writeText(url);
     setCopied(true);
   }
 
   if (!project) {
-    return <p className="text-slate-500">Create a project first from the header.</p>;
+    return <p className="text-slate-500">Create a project first from the sidebar.</p>;
   }
 
   const tree = treeQ.data ?? [];
@@ -130,7 +100,7 @@ export function Diagrams() {
     <div className="grid grid-cols-1 gap-6 lg:grid-cols-[280px_minmax(0,1fr)] lg:items-start">
       <div className="card p-3">
         <div className="mb-2 flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-slate-500">Diagrams</h2>
+          <h2 className="text-sm font-semibold text-slate-500">{KIND_LABELS[kind]}</h2>
           <button onClick={() => select('')} className="btn-link" title="Diagrams root">
             Root
           </button>
@@ -138,28 +108,15 @@ export function Diagrams() {
         {treeQ.isLoading ? (
           <p className="text-sm text-slate-400">Loading…</p>
         ) : tree.length === 0 ? (
-          <p className="mb-2 text-sm text-slate-400">No diagrams yet.</p>
+          <p className="mb-2 text-sm text-slate-400">No {kind} diagrams yet.</p>
         ) : (
           <Tree nodes={tree} selectedPath={path} onSelect={select} />
         )}
-        <form onSubmit={createPage} className="mt-3 border-t border-slate-200 pt-3 dark:border-slate-800">
-          <label className="mb-1 block text-xs font-medium text-slate-500">New diagram</label>
-          <input
-            value={newPath}
-            onChange={(e) => setNewPath(e.target.value)}
-            placeholder="Folder/Diagram name"
-            className="input mb-1.5 text-sm"
-          />
-          {createError && <p className="mb-1.5 text-xs text-red-600">{createError}</p>}
-          <button type="submit" disabled={!newPath.trim() || creating} className="btn-secondary w-full text-xs">
-            Create
-          </button>
-        </form>
       </div>
 
       <div className="card min-h-[16rem] p-4">
         {!path ? (
-          <p className="text-sm text-slate-400">Select a diagram from the tree, or create one to get started.</p>
+          <p className="text-sm text-slate-400">Select a diagram from the tree to view it.</p>
         ) : pageQ.isLoading ? (
           <p className="text-sm text-slate-400">Loading…</p>
         ) : pageQ.error || !diagram ? (
@@ -172,51 +129,20 @@ export function Diagrams() {
               <div className="min-w-0">
                 <h1 className="truncate text-xl font-semibold tracking-tight">{diagram.title}</h1>
                 <p className="truncate text-xs text-slate-400">
-                  {path}.mmd · Updated {new Date(diagram.updated).toLocaleString()}
+                  {path}.mmd · {diagram.kind} · Updated {new Date(diagram.updated).toLocaleString()}
                 </p>
               </div>
               <div className="flex shrink-0 gap-2">
                 <button onClick={copyLink} className="btn-secondary px-2.5 py-1 text-xs">
                   {copied ? 'Copied!' : 'Copy link'}
                 </button>
-                {draft === null && (
-                  <button onClick={() => setDraft(diagram.content)} className="btn-secondary px-2.5 py-1 text-xs">
-                    Edit
-                  </button>
-                )}
-                {!confirmDelete ? (
-                  <button onClick={() => setConfirmDelete(true)} className="btn-danger-outline px-2.5 py-1 text-xs">
-                    Delete
-                  </button>
-                ) : (
-                  <>
-                    <button onClick={doDelete} className="btn-danger px-2.5 py-1 text-xs">
-                      Confirm
-                    </button>
-                    <button onClick={() => setConfirmDelete(false)} className="btn-ghost px-2.5 py-1 text-xs">
-                      Cancel
-                    </button>
-                  </>
-                )}
               </div>
             </div>
 
-            {draft !== null ? (
-              <div>
-                <MermaidField value={draft} onChange={setDraft} rows={16} autoFocus />
-                <div className="mt-2 flex gap-2">
-                  <button onClick={saveDraft} className="btn-primary px-2.5 py-1 text-xs">
-                    Save
-                  </button>
-                  <button onClick={() => setDraft(null)} className="btn-ghost px-2.5 py-1 text-xs">
-                    Cancel
-                  </button>
-                </div>
-              </div>
-            ) : diagram.content.trim() ? (
+            {diagram.content.trim() ? (
               <MermaidDiagram code={diagram.content} />
             ) : (
-              <p className="text-sm text-slate-400">This diagram is empty. Click Edit to add content.</p>
+              <p className="text-sm text-slate-400">This diagram is empty.</p>
             )}
           </>
         )}

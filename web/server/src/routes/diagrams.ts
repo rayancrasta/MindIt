@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import type { DiagramKind } from '../../../../src/types.js';
 import {
   createDiagram,
   deleteDiagram,
@@ -15,14 +16,20 @@ function pathParam(req: { query: Record<string, unknown> }): string {
   return typeof p === 'string' ? p : '';
 }
 
+function kindParam(req: { query: Record<string, unknown> }): DiagramKind | undefined {
+  const k = req.query.kind;
+  return k === 'sequence' || k === 'mermaid' ? k : undefined;
+}
+
 diagramsRouter.get('/tree', (req, res) => {
   const { project } = req.params as { project: string };
   const folder = typeof req.query.folder === 'string' ? req.query.folder : undefined;
+  const kind = kindParam(req);
   try {
     if (req.query.recursive === 'true') {
-      res.json(getDiagramTree(project, folder));
+      res.json(getDiagramTree(project, folder, kind));
     } else {
-      res.json(listDiagramFolder(project, folder));
+      res.json(listDiagramFolder(project, folder, kind));
     }
   } catch (err) {
     res.status(400).json({ error: err instanceof Error ? err.message : String(err) });
@@ -42,10 +49,20 @@ diagramsRouter.get('/page', (req, res) => {
 
 diagramsRouter.post('/page', (req, res) => {
   const { project } = req.params as { project: string };
-  const { path, content, title } = req.body ?? {};
+  const { path, content, title, kind } = req.body ?? {};
   if (!path || typeof path !== 'string') return res.status(400).json({ error: 'path is required.' });
   try {
-    res.status(201).json(createDiagram(project, path, typeof content === 'string' ? content : '', title));
+    res
+      .status(201)
+      .json(
+        createDiagram(
+          project,
+          path,
+          typeof content === 'string' ? content : '',
+          title,
+          kind === 'sequence' || kind === 'mermaid' ? kind : undefined
+        )
+      );
   } catch (err) {
     res.status(400).json({ error: err instanceof Error ? err.message : String(err) });
   }
@@ -53,11 +70,11 @@ diagramsRouter.post('/page', (req, res) => {
 
 diagramsRouter.put('/page', (req, res) => {
   const { project } = req.params as { project: string };
-  const { path, content } = req.body ?? {};
+  const { path, content, kind } = req.body ?? {};
   if (!path || typeof path !== 'string') return res.status(400).json({ error: 'path is required.' });
   if (typeof content !== 'string') return res.status(400).json({ error: 'content is required.' });
   try {
-    res.json(updateDiagram(project, path, content));
+    res.json(updateDiagram(project, path, content, kind === 'sequence' || kind === 'mermaid' ? kind : undefined));
   } catch (err) {
     res.status(400).json({ error: err instanceof Error ? err.message : String(err) });
   }

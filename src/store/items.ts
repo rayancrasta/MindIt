@@ -2,9 +2,18 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { randomUUID } from 'node:crypto';
 import matter from 'gray-matter';
-import { ITEM_TYPES, type Comment, type Item, type ItemStatus, type ItemType } from '../types.js';
+import {
+  ITEM_TYPES,
+  type Comment,
+  type Item,
+  type ItemRef,
+  type ItemStatus,
+  type ItemType,
+  type SpecPlatform,
+} from '../types.js';
 import { itemDir, listProjectSlugs, slugify } from './paths.js';
 import { nextId } from './counter.js';
+import { readSpecScreen } from './specs.js';
 
 const ID_WIDTH = 5;
 
@@ -120,6 +129,16 @@ export function findItemGlobal(match: string): { type: ItemType; project: string
   return null;
 }
 
+/** Resolves a list of global item IDs (e.g. from a session entry) into current snapshots, silently skipping any that no longer exist. */
+export function resolveItemRefs(ids: string[] | undefined): ItemRef[] | undefined {
+  if (!ids || !ids.length) return undefined;
+  const resolved = ids
+    .map((id) => findItemGlobal(id))
+    .filter((found): found is NonNullable<typeof found> => found !== null)
+    .map((found) => ({ id: found.item.id, type: found.type, title: found.item.title, status: found.item.status }));
+  return resolved.length ? resolved : undefined;
+}
+
 export function updateItem<T extends Item>(
   type: ItemType,
   project: string,
@@ -213,4 +232,43 @@ export function countChildren(
     if (String(data[parentField]) === parentId) count++;
   }
   return count;
+}
+
+function specKey(platform: SpecPlatform, specPath: string): string {
+  return `${platform}:${specPath}`;
+}
+
+/** Links any feature/story/task/bug to a spec screen (a one-directional reference stored on the item). Fails if the spec doesn't exist. */
+export function linkSpec(itemId: string, platform: SpecPlatform, specPath: string): Item {
+  const found = findItemGlobal(itemId);
+  if (!found) {
+    throw new Error(`No item found with number ${itemId}.`);
+  }
+  const screen = readSpecScreen(found.project, platform, specPath); // throws if the spec doesn't exist
+  const key = specKey(platform, screen.path);
+  const specs = Array.from(new Set([...((found.item as { specs?: string[] }).specs ?? []), key]));
+  return updateItem(found.type, found.project, found.item.id, { specs });
+}
+
+/** Removes a spec link from an item. No-op if it wasn't linked. */
+export function unlinkSpec(itemId: string, platform: SpecPlatform, specPath: string): Item {
+  const found = findItemGlobal(itemId);
+  if (!found) {
+    throw new Error(`No item found with number ${itemId}.`);
+  }
+  const key = specKey(platform, specPath);
+  const specs = ((found.item as { specs?: string[] }).specs ?? []).filter((s) => s !== key);
+  return updateItem(found.type, found.project, found.item.id, { specs });
+}
+
+/** Every feature/story/task/bug in a project that links to this spec screen — computed by scanning items, not stored on the spec. */
+export function findItemsReferencingSpec(project: string, platform: SpecPlatform, specPath: string): Item[] {
+  const key = specKey(platform, specPath);
+  const out: Item[] = [];
+  for (const type of ITEM_TYPES) {
+    for (const item of listItems(type, project)) {
+      if ((item as { specs?: string[] }).specs?.includes(key)) out.push(item);
+    }
+  }
+  return out;
 }

@@ -5,6 +5,7 @@ import { useProject } from '../context/ProjectContext';
 import { StatusBadge } from '../components/StatusBadge';
 import { DeploymentStatusBadge } from '../components/DeploymentStatusBadge';
 import { EnvironmentBadge } from '../components/EnvironmentBadge';
+import { TouchedItems } from '../components/TouchedItems';
 
 const TYPE_LABELS: Record<ItemType, string> = { feature: 'Features', story: 'Stories', task: 'Tasks', bug: 'Bugs' };
 const TYPES: ItemType[] = ['feature', 'story', 'task', 'bug'];
@@ -39,7 +40,7 @@ export function Dashboard() {
   return (
     <div className="space-y-6">
       <section>
-        <h2 className="mb-3 text-lg font-semibold tracking-tight">Status — {project}</h2>
+        <h2 className="mb-3 text-lg font-semibold tracking-tight">Status</h2>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {TYPES.map((t) => {
             const total = ITEM_STATUSES.reduce((sum, s) => sum + (counts?.[t]?.[s] ?? 0), 0);
@@ -80,7 +81,12 @@ export function Dashboard() {
 
       {resume?.lastSession && (
         <section>
-          <h2 className="mb-2 text-lg font-semibold tracking-tight">Last session</h2>
+          <div className="mb-2 flex items-center justify-between">
+            <h2 className="text-lg font-semibold tracking-tight">Last session</h2>
+            <Link to="/handoffs" className="text-xs font-medium text-blue-600 hover:underline dark:text-blue-400">
+              See all →
+            </Link>
+          </div>
           <div className="card p-3 text-sm">
             <p className="mb-2 text-xs text-neutral-400">{new Date(resume.lastSession.timestamp).toLocaleString()}</p>
             <p className="mb-1">
@@ -93,9 +99,14 @@ export function Dashboard() {
               </p>
             )}
             {resume.lastSession.next && (
-              <p>
+              <p className="mb-1">
                 <span className="font-medium text-neutral-600 dark:text-neutral-300">Next:</span> {resume.lastSession.next}
               </p>
+            )}
+            {resume.lastSessionTouchedItems && resume.lastSessionTouchedItems.length > 0 && (
+              <div className="mt-2">
+                <TouchedItems items={resume.lastSessionTouchedItems} />
+              </div>
             )}
           </div>
         </section>

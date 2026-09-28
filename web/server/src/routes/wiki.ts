@@ -1,10 +1,14 @@
 import { Router } from 'express';
 import {
   appendWikiPage,
+  createWikiFolder,
   createWikiPage,
+  deleteWikiFolder,
   deleteWikiPage,
   getWikiTree,
   listWikiFolder,
+  moveWikiFolder,
+  moveWikiPage,
   readWikiPage,
   updateWikiPage,
 } from '../../../../src/store/wiki.js';
@@ -82,6 +86,54 @@ wikiRouter.delete('/page', (req, res) => {
   if (!path) return res.status(400).json({ error: 'path is required.' });
   try {
     res.json(deleteWikiPage(project, path));
+  } catch (err) {
+    res.status(400).json({ error: err instanceof Error ? err.message : String(err) });
+  }
+});
+
+wikiRouter.post('/page/move', (req, res) => {
+  const { project } = req.params as { project: string };
+  const { from, to } = req.body ?? {};
+  if (!from || typeof from !== 'string' || !to || typeof to !== 'string') {
+    return res.status(400).json({ error: 'from and to are required.' });
+  }
+  try {
+    res.json(moveWikiPage(project, from, to));
+  } catch (err) {
+    res.status(400).json({ error: err instanceof Error ? err.message : String(err) });
+  }
+});
+
+wikiRouter.post('/folder', (req, res) => {
+  const { project } = req.params as { project: string };
+  const { path } = req.body ?? {};
+  if (!path || typeof path !== 'string') return res.status(400).json({ error: 'path is required.' });
+  try {
+    res.status(201).json(createWikiFolder(project, path));
+  } catch (err) {
+    res.status(400).json({ error: err instanceof Error ? err.message : String(err) });
+  }
+});
+
+wikiRouter.delete('/folder', (req, res) => {
+  const { project } = req.params as { project: string };
+  const path = pathParam(req);
+  if (!path) return res.status(400).json({ error: 'path is required.' });
+  try {
+    res.json(deleteWikiFolder(project, path));
+  } catch (err) {
+    res.status(400).json({ error: err instanceof Error ? err.message : String(err) });
+  }
+});
+
+wikiRouter.post('/folder/move', (req, res) => {
+  const { project } = req.params as { project: string };
+  const { from, to } = req.body ?? {};
+  if (!from || typeof from !== 'string' || !to || typeof to !== 'string') {
+    return res.status(400).json({ error: 'from and to are required.' });
+  }
+  try {
+    res.json(moveWikiFolder(project, from, to));
   } catch (err) {
     res.status(400).json({ error: err instanceof Error ? err.message : String(err) });
   }
