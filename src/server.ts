@@ -65,6 +65,7 @@ import { registerLinkSpecScreensTool } from './tools/linkSpecScreens.js';
 import { registerUnlinkSpecScreensTool } from './tools/unlinkSpecScreens.js';
 import { registerProjectTools } from './tools/projects.js';
 import { registerHandoffTools } from './tools/handoffs.js';
+import { registerThoughtTools } from './tools/thoughts.js';
 
 const server = new McpServer({ name: 'work-tracker', version: '0.1.0' });
 
@@ -132,6 +133,7 @@ registerLinkSpecScreensTool(server);
 registerUnlinkSpecScreensTool(server);
 registerProjectTools(server);
 registerHandoffTools(server);
+registerThoughtTools(server);
 
 async function main() {
   const transport = new StdioServerTransport();

@@ -162,6 +162,10 @@ export function logPath(project: string): string {
   return path.join(projectDir(project), 'LOG.md');
 }
 
+export function thoughtsDir(project: string): string {
+  return path.join(projectDir(project), 'thoughts');
+}
+
 export function handoffsDir(project: string): string {
   return path.join(projectDir(project), 'handoffs');
 }

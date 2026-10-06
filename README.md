@@ -178,6 +178,8 @@ data/<project-slug>/       # or an external folder's .mindit/ subdir — see Pro
   specs/mobile/<...folders>/<screen>.md  # nested mobile screen specs
   handoffs/<YYYY-MM>/<timestamp>.md   # one file per handover (session log), grouped by month
   handoffs/INDEX.md                   # one line per handover, newest first — date, items, summary
+  thoughts/<YYYY-MM>/<id>.md          # one file per developer thought, grouped by month
+  thoughts/INDEX.md                   # one line per thought, newest first — date, kind, tags, items, summary
 data/.counter     # shared id counter, global across all projects/types
 data/projects.json  # project registry — slug, display name, external path (or null)
 ```
@@ -281,6 +283,29 @@ The web UI's `/handoffs` page lists a project's full session-log history (not ju
 latest entry) as touched-item badges under each entry's done/blockers/next, with a form to
 log a new one — the same write path as `log_session`. The Dashboard's "Last session" card
 shows the same badges for the latest entry, with a link through to the full history.
+
+## Developer thoughts
+
+A running record of the developer's own thinking while building — doubts, decisions, ideas and
+open questions — so the reasoning behind the work can be recovered later, by you or by Claude.
+It's the same shape as [Handoffs](#handoffs) (one file per entry, grouped by month, with an
+index), but it records *why* rather than *what got done*, and entries are meant to be posted
+often, mid-flow.
+
+Each thought is `thoughts/<YYYY-MM>/<id>.md`: YAML frontmatter (`id`, `created`, `kind`, plus
+optional `updated`, `title`, `tags`, `items`) with the thought itself as the body. The `id` is
+the creation timestamp made filename-safe (`2026-10-06T22-14-33-306Z`), so ids sort
+chronologically. `kind` is one of `thought` (default), `doubt`, `decision`, `idea`, `question`;
+`items` links to the features/stories/tasks/bugs the thought is about. `thoughts/INDEX.md`
+lists every thought newest first.
+
+| Tool | What it does |
+|---|---|
+| `add_thought` | Record a thought — `body` required; optional `kind`, `title`, `tags`, `items` |
+| `get_thought` | Read one thought by `id` |
+| `list_thoughts` | List/search newest first — optional `query` (title/body), `kind`, `tag`, `item`, `since`/`until` (`2026-09` or `2026-09-28`), `limit` |
+| `update_thought` | Partial edit by `id` — only the fields passed change; empty `title`/`tags`/`items` clear them; adds an `updated` time |
+| `delete_thought` | Permanently delete by `id` |
 
 ## Diagrams
 
@@ -424,7 +449,7 @@ web/mobile screen path via `link_spec`/`unlink_spec`.
 
 Plus: `link_stories`, `unlink_stories`, `get_status` (counts by type/status), `log_session`
 (optionally tagged with touched item ids — see [Handoffs](#handoffs)), `search_handoffs`,
-`migrate_handoffs`, `get_resume`
+`migrate_handoffs`, the developer-thought tools (see [Developer thoughts](#developer-thoughts)), `get_resume`
 (pending items + last session + last deployment, per-project or cross-project), `get_item`
 (look up any item by number alone, regardless of type or project),
 `add_comment`/`update_comment`/`delete_comment` (ADO-style comment threads on any item), and

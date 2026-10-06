@@ -209,6 +209,24 @@ export interface SessionEntry {
   items?: string[];
 }
 
+export const THOUGHT_KINDS = ['thought', 'doubt', 'decision', 'idea', 'question'] as const;
+export type ThoughtKind = (typeof THOUGHT_KINDS)[number];
+
+/** A developer's own note on how they were thinking while building — doubts, decisions, ideas. */
+export interface DeveloperThought {
+  /** Stable id derived from the creation timestamp, e.g. "2026-10-06T22-14-33-306Z". */
+  id: string;
+  project: string;
+  kind: ThoughtKind;
+  title?: string;
+  body: string;
+  tags?: string[];
+  /** IDs of features/stories/tasks/bugs this thought relates to. */
+  items?: string[];
+  created: string;
+  updated?: string;
+}
+
 /** A resolved snapshot of an item referenced elsewhere (e.g. by a session entry), for display. */
 export interface ItemRef {
   id: string;
