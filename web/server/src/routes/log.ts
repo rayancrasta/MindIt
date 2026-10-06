@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { appendSessionEntry, getRecentSessionEntries } from '../../../../src/store/sessions.js';
+import { appendSessionEntry, getRecentSessionEntries, searchSessionEntries } from '../../../../src/store/sessions.js';
 import { resolveItemRefs } from '../../../../src/store/items.js';
 
 export const logRouter = Router({ mergeParams: true });
@@ -7,7 +7,12 @@ export const logRouter = Router({ mergeParams: true });
 logRouter.get('/', (req, res) => {
   const { project } = req.params as { project: string };
   const limit = typeof req.query.limit === 'string' ? Number(req.query.limit) : 10;
-  const entries = getRecentSessionEntries(project, limit);
+  const str = (v: unknown) => (typeof v === 'string' && v ? v : undefined);
+  const [query, item, since, until] = [req.query.q, req.query.item, req.query.since, req.query.until].map(str);
+  const entries =
+    query || item || since || until
+      ? searchSessionEntries(project, { query, item, since, until, limit })
+      : getRecentSessionEntries(project, limit);
   res.json(entries.map((entry) => ({ ...entry, touchedItems: resolveItemRefs(entry.items) })));
 });
 

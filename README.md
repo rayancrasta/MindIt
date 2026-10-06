@@ -176,7 +176,8 @@ data/<project-slug>/       # or an external folder's .mindit/ subdir — see Pro
   schemas/<...folders>/<table>.md        # nested SQL table docs, same layout as wiki/
   specs/web/<...folders>/<screen>.md     # nested web screen specs
   specs/mobile/<...folders>/<screen>.md  # nested mobile screen specs
-  LOG.md          # append-only session log, newest entry first
+  handoffs/<YYYY-MM>/<timestamp>.md   # one file per handover (session log), grouped by month
+  handoffs/INDEX.md                   # one line per handover, newest first — date, items, summary
 data/.counter     # shared id counter, global across all projects/types
 data/projects.json  # project registry — slug, display name, external path (or null)
 ```
@@ -262,6 +263,19 @@ those ids live via `lastSessionTouchedItems`, so a recap shows each item's *curr
 title/status rather than stale prose written at log time. Item-ref resolution lives in a
 single shared store helper used by both `get_resume` and the web resume/log routes, so the
 MCP and web views can never drift.
+
+**Storage.** Each handover is its own file, `handoffs/<YYYY-MM>/<timestamp>.md` (YAML
+frontmatter for `timestamp`/`items`/`blockers`/`next`, with `done` as the free-text body), and
+`handoffs/INDEX.md` lists every one, newest first, with date, touched item ids and a one-line
+summary. Logging only adds a file and one index line, so history is never rewritten and stays
+cheap at any length. `search_handoffs` filters the history by `query` (text in done/blockers/next),
+`item` (an item id), and `since`/`until` (`2026-09` or `2026-09-28`); the web log route accepts the
+same filters as `?q=&item=&since=&until=`.
+
+**Migrating the old `LOG.md`.** Earlier versions kept one `LOG.md` per project. `migrate_handoffs`
+converts it (all projects, or one via `project`; `dry_run: true` previews), keeping the original
+as `LOG.md.bak`; it's safe to re-run. Any project with a leftover `LOG.md` is also migrated
+automatically the first time its handoffs are read or written.
 
 The web UI's `/handoffs` page lists a project's full session-log history (not just the
 latest entry) as touched-item badges under each entry's done/blockers/next, with a form to
@@ -409,7 +423,8 @@ web/mobile screen path via `link_spec`/`unlink_spec`.
 | list | `list_features` | `list_stories` | `list_tasks` | `list_bugs` |
 
 Plus: `link_stories`, `unlink_stories`, `get_status` (counts by type/status), `log_session`
-(optionally tagged with touched item ids — see [Handoffs](#handoffs)), `get_resume`
+(optionally tagged with touched item ids — see [Handoffs](#handoffs)), `search_handoffs`,
+`migrate_handoffs`, `get_resume`
 (pending items + last session + last deployment, per-project or cross-project), `get_item`
 (look up any item by number alone, regardless of type or project),
 `add_comment`/`update_comment`/`delete_comment` (ADO-style comment threads on any item), and

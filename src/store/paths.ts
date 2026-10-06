@@ -157,8 +157,13 @@ export function bugsDir(project: string): string {
   return itemDir('bug', project);
 }
 
+/** The pre-handoffs single-file session log; only read by the one-off migration to handoffs/. */
 export function logPath(project: string): string {
   return path.join(projectDir(project), 'LOG.md');
+}
+
+export function handoffsDir(project: string): string {
+  return path.join(projectDir(project), 'handoffs');
 }
 
 export function wikiDir(project: string): string {

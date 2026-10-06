@@ -8,7 +8,9 @@ export function registerLogSessionTool(server: McpServer): void {
     'log_session',
     {
       title: 'Log Session',
-      description: 'Append a session log entry for a project — what was done, blockers, next step.',
+      description:
+        'Append a handover entry for a project — what was done, blockers, next step. History is kept: each entry ' +
+        'is its own file under handoffs/<YYYY-MM>/ and is added to handoffs/INDEX.md. Use search_handoffs to look back.',
       inputSchema: {
         project: z.string().min(1).describe('Project name'),
         done: z.string().min(1).describe('What was done this session'),
