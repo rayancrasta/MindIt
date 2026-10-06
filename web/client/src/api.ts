@@ -83,6 +83,31 @@ export interface SessionEntry {
   touchedItems?: ItemRef[];
 }
 
+export const THOUGHT_KINDS = ['thought', 'doubt', 'decision', 'idea', 'question'] as const;
+export type ThoughtKind = (typeof THOUGHT_KINDS)[number];
+
+export interface DeveloperThought {
+  id: string;
+  project: string;
+  kind: ThoughtKind;
+  title?: string;
+  body: string;
+  tags?: string[];
+  items?: string[];
+  created: string;
+  updated?: string;
+  /** Only present when the server resolved `items` for display; not sent back on create. */
+  touchedItems?: ItemRef[];
+}
+
+export interface ThoughtInput {
+  body: string;
+  kind?: ThoughtKind;
+  title?: string;
+  tags?: string[];
+  items?: string[];
+}
+
 export interface ItemRef {
   id: string;
   type: ItemType;
@@ -379,12 +404,30 @@ export const api = {
     },
   },
   log: {
-    list: (project: string, limit?: number) =>
-      req<SessionEntry[]>(`/projects/${encodeURIComponent(project)}/log${limit ? `?limit=${limit}` : ''}`),
+    list: (project: string, limit?: number, q?: string) =>
+      req<SessionEntry[]>(`/projects/${encodeURIComponent(project)}/log${qs({ limit: limit?.toString(), q })}`),
     append: (project: string, entry: { done: string; blockers?: string; next?: string; items?: string[] }) =>
       req<{ timestamp: string }>(`/projects/${encodeURIComponent(project)}/log`, {
         method: 'POST',
         body: JSON.stringify(entry),
+      }),
+  },
+  thoughts: {
+    list: (project: string, filters: { q?: string; kind?: ThoughtKind; tag?: string; item?: string } = {}) =>
+      req<DeveloperThought[]>(`/projects/${encodeURIComponent(project)}/thoughts${qs(filters)}`),
+    create: (project: string, data: ThoughtInput) =>
+      req<DeveloperThought>(`/projects/${encodeURIComponent(project)}/thoughts`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }),
+    update: (project: string, id: string, data: Partial<ThoughtInput>) =>
+      req<DeveloperThought>(`/projects/${encodeURIComponent(project)}/thoughts/${encodeURIComponent(id)}`, {
+        method: 'PATCH',
+        body: JSON.stringify(data),
+      }),
+    remove: (project: string, id: string) =>
+      req<{ message: string }>(`/projects/${encodeURIComponent(project)}/thoughts/${encodeURIComponent(id)}`, {
+        method: 'DELETE',
       }),
   },
   wiki: {

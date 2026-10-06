@@ -279,10 +279,14 @@ converts it (all projects, or one via `project`; `dry_run: true` previews), keep
 as `LOG.md.bak`; it's safe to re-run. Any project with a leftover `LOG.md` is also migrated
 automatically the first time its handoffs are read or written.
 
-The web UI's `/handoffs` page lists a project's full session-log history (not just the
-latest entry) as touched-item badges under each entry's done/blockers/next, with a form to
-log a new one — the same write path as `log_session`. The Dashboard's "Last session" card
-shows the same badges for the latest entry, with a link through to the full history.
+The web UI's `/handoffs` page presents the full history as a timeline: the latest handoff is
+pulled out as a **Pick up here** card, and everything earlier is grouped by month and day
+(months collapse) with a rail down the left — amber dots mark sessions that ended with
+blockers. Each entry lays out **Done**, a **Blockers** callout and a **Next** callout, with the
+touched-item badges underneath; long entries clamp with a Show more toggle. A search box (backed by
+the same filters as `search_handoffs`) and a "Blockers only" toggle narrow it down, and "+ Log
+handoff" is the same write path as `log_session`. The Dashboard's "Last session" card shows the
+same badges for the latest entry, with a link through to the full history.
 
 ## Developer thoughts
 
@@ -306,6 +310,13 @@ lists every thought newest first.
 | `list_thoughts` | List/search newest first — optional `query` (title/body), `kind`, `tag`, `item`, `since`/`until` (`2026-09` or `2026-09-28`), `limit` |
 | `update_thought` | Partial edit by `id` — only the fields passed change; empty `title`/`tags`/`items` clear them; adds an `updated` time |
 | `delete_thought` | Permanently delete by `id` |
+
+The web UI's `/thoughts` page shows them on the same month/day timeline as Handoffs, each card
+colour-coded by kind (💭 thought, 🤔 doubt, ✅ decision, 💡 idea, ❓ question) with its tags and
+live-resolved related-item badges. Filter by kind or tag chips, or search the text; "+ New
+thought" and each card's Edit/Delete cover the full CRUD (⌘/Ctrl+Enter saves). The routes are
+`GET|POST /api/projects/:project/thoughts` and `GET|PATCH|DELETE .../thoughts/:id`; `GET`
+takes `?q=&kind=&tag=&item=&since=&until=&limit=`.
 
 ## Diagrams
 

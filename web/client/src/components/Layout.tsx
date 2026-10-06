@@ -60,6 +60,13 @@ const HandoffsIcon = () => (
     <path d="m8 14 3 3 5-6" />
   </Icon>
 );
+const ThoughtsIcon = () => (
+  <Icon>
+    <path d="M9 18h6" />
+    <path d="M10 21h4" />
+    <path d="M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3Z" />
+  </Icon>
+);
 const MermaidDiagramsIcon = () => (
   <Icon>
     <circle cx="6" cy="6" r="2" />
@@ -105,6 +112,7 @@ const NAV = [
   { to: '/wiki', label: 'Wiki', icon: WikiIcon },
   { to: '/deployments', label: 'Deployments', icon: DeploymentsIcon },
   { to: '/handoffs', label: 'Handoffs', icon: HandoffsIcon },
+  { to: '/thoughts', label: 'Thoughts', icon: ThoughtsIcon },
   { to: '/diagrams/sequence', label: 'Sequence Diagrams', icon: SequenceDiagramsIcon },
   { to: '/diagrams/mermaid', label: 'Mermaid Diagrams', icon: MermaidDiagramsIcon },
   { to: '/schemas', label: 'Schemas', icon: SchemasIcon },
@@ -118,6 +126,7 @@ const PAGE_TITLES = [
   { prefix: '/wiki', label: 'Wiki' },
   { prefix: '/deployments', label: 'Deployments' },
   { prefix: '/handoffs', label: 'Handoffs' },
+  { prefix: '/thoughts', label: 'Thoughts' },
   { prefix: '/diagrams/sequence', label: 'Sequence Diagrams' },
   { prefix: '/diagrams/mermaid', label: 'Mermaid Diagrams' },
   { prefix: '/schemas', label: 'Schemas' },
