@@ -18,10 +18,11 @@
   <a href="#wiki"><b>Wiki</b></a> ·
   <a href="#deployment-notes"><b>Deployment notes</b></a> ·
   <a href="#handoffs"><b>Handoffs</b></a> ·
+  <a href="#developer-thoughts"><b>Developer thoughts</b></a> ·
   <a href="#diagrams"><b>Diagrams</b></a> ·
   <a href="#database-schemas"><b>Database Schemas</b></a> ·
   <a href="#spec-driven-development"><b>Spec-driven development</b></a> ·
-  <a href="#tools-62"><b>Tools</b></a> ·
+  <a href="#tools-73"><b>Tools</b></a> ·
   <a href="#skills"><b>Skills</b></a>
 </p>
 
@@ -99,9 +100,10 @@ server.
   Wiki, with each leaf a column-by-column form editor instead of raw text), **Specs**
   (`/specs/<platform>/<project>/<path>`, split into **Web Specs**/**Mobile Specs** tabs —
   see [Spec-driven development](#spec-driven-development), below), **Handoffs**
-  (`/handoffs` — the project's session log as its own page, with a form to log a new
-  entry and each entry showing its touched-item badges; see [below](#handoffs)), and
-  **Projects** (`/projects` — see [Projects](#projects), below). On both Backlog and
+  (`/handoffs` — the project's session history as a searchable month/day timeline, with the
+  latest entry pulled out as a "Pick up here" card; see [below](#handoffs)), **Thoughts**
+  (`/thoughts` — developer thoughts, colour-coded by kind, with filters and full
+  create/edit/delete; see [Developer thoughts](#developer-thoughts)), and **Projects** (`/projects` — see [Projects](#projects), below). On both Backlog and
   Board, a Feature whose Stories are all done drops into a collapsed "Show Completed"
   section so the active work stays in view. A sun/moon toggle in the sidebar switches
   between light and dark — both built on a single restrained neutral-gray palette
@@ -449,7 +451,7 @@ straight to that screen, pushing an in-app "← Back to *X*" trail so you can re
 screens you came through. Item detail pages have a "Linked specs" section for attaching a
 web/mobile screen path via `link_spec`/`unlink_spec`.
 
-## Tools (62)
+## Tools (73)
 
 | Verb | Feature | Story | Task | Bug |
 |---|---|---|---|---|
@@ -466,7 +468,7 @@ Plus: `link_stories`, `unlink_stories`, `get_status` (counts by type/status), `l
 `add_comment`/`update_comment`/`delete_comment` (ADO-style comment threads on any item), and
 the wiki, deployment note, diagram, schema, and spec tools — see above.
 
-Project creation/rename/removal has no MCP tool by design — see [Projects](#projects).
+Project management (`create_project`, `list_projects`, `rename_project`, `remove_project`) — see [Projects](#projects).
 
 Deleting a Feature/Story with children attached is blocked with a warning unless `force:
 true` is passed; force-delete leaves children pointing at a now-missing parent id (a stale
