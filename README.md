@@ -195,18 +195,20 @@ sit inside an existing repo without polluting its root. The registry
 (`data/projects.json`) is reconciled against `data/*` on every read, so a folder dropped in
 manually (or created before the registry existed) is auto-registered under its folder name.
 
-| Tool/route | What it does |
-|---|---|
-| `POST /api/projects` | Create a project — `name` required, optional `path` for an external location |
-| `GET /api/projects` | List all registered projects (slug, display name, path, created) |
-| `PATCH /api/projects/:slug` | Rename a project (display name only — the slug/files don't move) |
-| `DELETE /api/projects/:slug` | Unregister a project — files on disk are left untouched, whether internal or external |
+| MCP tool | Route | What it does |
+|---|---|---|
+| `create_project` | `POST /api/projects` | Create a project — `name` required, optional `path` for an external location |
+| `list_projects` | `GET /api/projects` | List all registered projects (slug, display name, path) |
+| `rename_project` | `PATCH /api/projects/:slug` | Rename a project (display name only — the slug/files don't move) |
+| `remove_project` | `DELETE /api/projects/:slug` | Unregister a project — files on disk are left untouched, whether internal or external |
 
-There's no MCP tool for project management by design — every other tool already takes a
-free-text `project` name and creates its folder on first use, so a new project needs no
-explicit setup from Claude Code. The web UI's `/projects` page (reachable from the sidebar's
-project switcher) is where you rename/remove projects or point one at a custom folder via a
-server-backed folder browser, and it's also where the project switcher lives — picking a
+Creating a project explicitly is optional — every other tool takes a free-text `project` name
+and creates its folder on first use — but `create_project` is the way to register one at an
+external folder from Claude Code. Removing a project in the default `data/` location only
+sticks while its folder is gone: the registry re-registers any `data/*` folder on the next read.
+The web UI's `/projects` page (reachable from the sidebar's
+project switcher) offers the same management plus a server-backed folder browser for custom
+folders, and it's also where the project switcher lives — picking a
 project there (or from the sidebar dropdown) is remembered per-browser and, on a
 path-addressed page, navigates to that project's URL.
 
