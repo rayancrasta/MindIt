@@ -227,6 +227,46 @@ export interface DeveloperThought {
   updated?: string;
 }
 
+export const CONFIDENCE_LEVELS = ['low', 'medium', 'high'] as const;
+export type Confidence = (typeof CONFIDENCE_LEVELS)[number];
+
+export const ASSUMPTION_STATUSES = ['open', 'reviewed'] as const;
+export type AssumptionStatus = (typeof ASSUMPTION_STATUSES)[number];
+
+/** A decision an agent made under ambiguity, recorded so a human can review it later. */
+export interface Assumption {
+  /** Stable id derived from the creation timestamp, e.g. "2026-10-06T22-14-33-306Z". */
+  id: string;
+  project: string;
+  /** The assumption in one line. */
+  title: string;
+  /** What was ambiguous and what was decided. */
+  body?: string;
+  confidence: Confidence;
+  /** `open` until a human or agent has reviewed it. */
+  status: AssumptionStatus;
+  /** Outcome of the review, e.g. what was decided. Set when marked reviewed. */
+  reviewNote?: string;
+  /** When it was marked reviewed. */
+  reviewedAt?: string;
+  alternatives?: string;
+  /** What breaks if the assumption is wrong. */
+  impact?: string;
+  /** The specific thing the human should confirm. */
+  question?: string;
+  tags?: string[];
+  /** IDs of features/stories/tasks/bugs this relates to. */
+  items?: string[];
+  /** Wiki page paths. */
+  wiki?: string[];
+  /** Other docs, as "spec:<platform>:<path>", "diagram:<kind>:<path>" or "schema:<path>". */
+  refs?: string[];
+  /** Code locations, as "path/to/file.ts" or "path/to/file.ts:42". */
+  code?: string[];
+  created: string;
+  updated?: string;
+}
+
 /** A resolved snapshot of an item referenced elsewhere (e.g. by a session entry), for display. */
 export interface ItemRef {
   id: string;

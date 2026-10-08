@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { listItems, resolveItemRefs } from '../../../../src/store/items.js';
 import { listProjectSlugs } from '../../../../src/store/paths.js';
 import { getLastSessionEntry } from '../../../../src/store/sessions.js';
+import { listAssumptionsForReview } from '../../../../src/store/assumptions.js';
 import { getLastDeploymentNote } from '../../../../src/store/deployments.js';
 import type { ItemStatus, ItemType } from '../../../../src/types.js';
 
@@ -23,6 +24,7 @@ function resumeForProject(project: string) {
     lastSession,
     lastSessionTouchedItems: resolveItemRefs(lastSession?.items),
     lastDeployment: getLastDeploymentNote(project),
+    assumptionsToReview: listAssumptionsForReview(project, 5),
   };
 }
 
@@ -36,7 +38,7 @@ resumeRouter.get('/', (req, res) => {
     const r = resumeForProject(slug);
     const hasPending =
       r.pendingFeatures.length || r.pendingStories.length || r.pendingTasks.length || r.pendingBugs.length;
-    if (hasPending || r.lastSession || r.lastDeployment) result[slug] = r;
+    if (hasPending || r.lastSession || r.lastDeployment || r.assumptionsToReview.length) result[slug] = r;
   }
   res.json(result);
 });

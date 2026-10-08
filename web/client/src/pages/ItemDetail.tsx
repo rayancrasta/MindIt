@@ -16,6 +16,7 @@ import {
 import { StatusBadge } from '../components/StatusBadge';
 import { ItemTypeBadge } from '../components/ItemTypeBadge';
 import { Comments } from '../components/Comments';
+import { ItemAssumptions } from '../components/ItemAssumptions';
 import { MarkdownBody, MarkdownField } from '../components/Markdown';
 
 /** specs are stored on the item as "platform:path" — path segments can't contain ":", so splitting on the first one is unambiguous. */
@@ -311,6 +312,7 @@ export function ItemDetail() {
         </div>
       </div>
 
+      <ItemAssumptions project={project} itemId={item.id} />
       <Comments itemId={item.id} comments={item.comments ?? []} />
 
       <div className="border-t border-neutral-200 pt-4 dark:border-neutral-700">

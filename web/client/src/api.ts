@@ -108,6 +108,48 @@ export interface ThoughtInput {
   items?: string[];
 }
 
+export const CONFIDENCE_LEVELS = ['low', 'medium', 'high'] as const;
+export type Confidence = (typeof CONFIDENCE_LEVELS)[number];
+
+export type AssumptionStatus = 'open' | 'reviewed';
+
+export interface Assumption {
+  id: string;
+  project: string;
+  title: string;
+  body?: string;
+  confidence: Confidence;
+  status: AssumptionStatus;
+  reviewNote?: string;
+  reviewedAt?: string;
+  alternatives?: string;
+  impact?: string;
+  question?: string;
+  tags?: string[];
+  items?: string[];
+  wiki?: string[];
+  refs?: string[];
+  code?: string[];
+  created: string;
+  updated?: string;
+  /** Only present when the server resolved `items` for display. */
+  touchedItems?: ItemRef[];
+}
+
+export interface AssumptionInput {
+  title: string;
+  body?: string;
+  confidence?: Confidence;
+  alternatives?: string;
+  impact?: string;
+  question?: string;
+  tags?: string[];
+  items?: string[];
+  wiki?: string[];
+  refs?: string[];
+  code?: string[];
+}
+
 export interface ItemRef {
   id: string;
   type: ItemType;
@@ -427,6 +469,29 @@ export const api = {
       }),
     remove: (project: string, id: string) =>
       req<{ message: string }>(`/projects/${encodeURIComponent(project)}/thoughts/${encodeURIComponent(id)}`, {
+        method: 'DELETE',
+      }),
+  },
+  assumptions: {
+    list: (project: string, filters: { q?: string; confidence?: Confidence; status?: AssumptionStatus; tag?: string; item?: string } = {}) =>
+      req<Assumption[]>(`/projects/${encodeURIComponent(project)}/assumptions${qs(filters)}`),
+    create: (project: string, data: AssumptionInput) =>
+      req<Assumption>(`/projects/${encodeURIComponent(project)}/assumptions`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }),
+    update: (project: string, id: string, data: Partial<AssumptionInput>) =>
+      req<Assumption>(`/projects/${encodeURIComponent(project)}/assumptions/${encodeURIComponent(id)}`, {
+        method: 'PATCH',
+        body: JSON.stringify(data),
+      }),
+    review: (project: string, id: string, data: { note?: string; reopen?: boolean } = {}) =>
+      req<Assumption>(`/projects/${encodeURIComponent(project)}/assumptions/${encodeURIComponent(id)}/review`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }),
+    remove: (project: string, id: string) =>
+      req<{ message: string }>(`/projects/${encodeURIComponent(project)}/assumptions/${encodeURIComponent(id)}`, {
         method: 'DELETE',
       }),
   },

@@ -166,6 +166,10 @@ export function thoughtsDir(project: string): string {
   return path.join(projectDir(project), 'thoughts');
 }
 
+export function assumptionsDir(project: string): string {
+  return path.join(projectDir(project), 'assumptions');
+}
+
 export function handoffsDir(project: string): string {
   return path.join(projectDir(project), 'handoffs');
 }

@@ -19,6 +19,7 @@
   <a href="#deployment-notes"><b>Deployment notes</b></a> ·
   <a href="#handoffs"><b>Handoffs</b></a> ·
   <a href="#developer-thoughts"><b>Developer thoughts</b></a> ·
+  <a href="#assumptions"><b>Assumptions</b></a> ·
   <a href="#diagrams"><b>Diagrams</b></a> ·
   <a href="#database-schemas"><b>Database Schemas</b></a> ·
   <a href="#spec-driven-development"><b>Spec-driven development</b></a> ·
@@ -103,7 +104,8 @@ server.
   (`/handoffs` — the project's session history as a searchable month/day timeline, with the
   latest entry pulled out as a "Pick up here" card; see [below](#handoffs)), **Thoughts**
   (`/thoughts` — developer thoughts, colour-coded by kind, with filters and full
-  create/edit/delete; see [Developer thoughts](#developer-thoughts)), and **Projects** (`/projects` — see [Projects](#projects), below). On both Backlog and
+  create/edit/delete; see [Developer thoughts](#developer-thoughts)), **Assumptions**
+  (`/assumptions` — decisions agents made under ambiguity; see [Assumptions](#assumptions)), and **Projects** (`/projects` — see [Projects](#projects), below). On both Backlog and
   Board, a Feature whose Stories are all done drops into a collapsed "Show Completed"
   section so the active work stays in view. A sun/moon toggle in the sidebar switches
   between light and dark — both built on a single restrained neutral-gray palette
@@ -182,6 +184,8 @@ data/<project-slug>/       # or an external folder's .mindit/ subdir — see Pro
   handoffs/INDEX.md                   # one line per handover, newest first — date, items, summary
   thoughts/<YYYY-MM>/<id>.md          # one file per developer thought, grouped by month
   thoughts/INDEX.md                   # one line per thought, newest first — date, kind, tags, items, summary
+  assumptions/<YYYY-MM>/<id>.md       # one file per assumption an agent made under ambiguity
+  assumptions/INDEX.md                # one line per assumption, newest first — date, confidence, items, title
 data/.counter     # shared id counter, global across all projects/types
 data/projects.json  # project registry — slug, display name, external path (or null)
 ```
@@ -319,6 +323,38 @@ live-resolved related-item badges. Filter by kind or tag chips, or search the te
 thought" and each card's Edit/Delete cover the full CRUD (⌘/Ctrl+Enter saves). The routes are
 `GET|POST /api/projects/:project/thoughts` and `GET|PATCH|DELETE .../thoughts/:id`; `GET`
 takes `?q=&kind=&tag=&item=&since=&until=&limit=`.
+
+## Assumptions
+
+Whenever an agent proceeds despite ambiguity — an unclear requirement, several plausible options,
+a gap it filled instead of asking — it records the call here so a human can review it later and
+nothing guessed goes unnoticed. Same shape as [Developer thoughts](#developer-thoughts): one file
+per entry, grouped by month, with an index. Each one has a `status`: `open` (unreviewed) until it is
+marked `reviewed`, optionally with a note on the outcome.
+
+Each assumption is `assumptions/<YYYY-MM>/<id>.md`: YAML frontmatter (`id`, `created`, `title`,
+`confidence` — `low`/`medium`/`high` —, `status` — `open`/`reviewed` — plus optional `reviewNote`/`reviewedAt` (set when reviewed), `updated`, `alternatives`, `impact` (what breaks
+if wrong), `question` (what a human should confirm), `tags`) with the context as the body.
+Links, all optional: `items` (feature/story/task/bug numbers), `wiki` (wiki paths), `refs`
+(`spec:<platform>:<path>`, `diagram:<kind>:<path>`, `schema:<path>`) and `code` (`file.ts:42`).
+`assumptions/INDEX.md` lists every entry newest first.
+
+| Tool | What it does |
+|---|---|
+| `add_assumption` | Record an assumption — `title` required; optional `body`, `confidence` (default `medium`), `alternatives`, `impact`, `question`, `tags`, `items`, `wiki`, `refs`, `code` |
+| `get_assumption` | Read one by `id` |
+| `list_unreviewed_assumptions` | Every `open` assumption, lowest confidence first — optional `item`, `wiki`, `limit` |
+| `review_assumption` | Mark one reviewed by `id`, with an optional `note` on the outcome; `reopen: true` puts it back to open |
+| `list_assumptions` | List/search newest first — optional `query`, `confidence`, `status`, `tag`, `item`, `wiki`, `since`/`until`, `limit` |
+| `update_assumption` | Partial edit by `id` — only the fields passed change; empty values clear them |
+| `delete_assumption` | Permanently delete by `id` |
+
+`get_resume` includes `assumptionsToReview` (up to 5 unreviewed entries, lowest confidence first), and
+the repo ships a `log-assumption` skill (`.claude/skills/log-assumption`) telling agents to call
+`add_assumption` the moment they guess. The web UI's `/assumptions` page shows a confidence-coloured
+timeline with status/confidence filter chips, search, link chips, Mark reviewed / Reopen and full CRUD, and work-item pages list the
+assumptions linked to them. Routes: `GET|POST /api/projects/:project/assumptions` and
+`GET|PATCH|DELETE .../assumptions/:id` and `POST .../assumptions/:id/review` (`{note?, reopen?}`); `GET` takes `?q=&confidence=&status=&tag=&item=&wiki=&since=&until=&limit=`.
 
 ## Diagrams
 
@@ -462,7 +498,7 @@ web/mobile screen path via `link_spec`/`unlink_spec`.
 
 Plus: `link_stories`, `unlink_stories`, `get_status` (counts by type/status), `log_session`
 (optionally tagged with touched item ids — see [Handoffs](#handoffs)), `search_handoffs`,
-`migrate_handoffs`, the developer-thought tools (see [Developer thoughts](#developer-thoughts)), `get_resume`
+`migrate_handoffs`, the developer-thought tools (see [Developer thoughts](#developer-thoughts)), the assumption tools (see [Assumptions](#assumptions)), `get_resume`
 (pending items + last session + last deployment, per-project or cross-project), `get_item`
 (look up any item by number alone, regardless of type or project),
 `add_comment`/`update_comment`/`delete_comment` (ADO-style comment threads on any item), and

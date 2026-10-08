@@ -3,6 +3,7 @@ import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { listItems, resolveItemRefs } from '../store/items.js';
 import { listProjectSlugs } from '../store/paths.js';
 import { getLastSessionEntry } from '../store/sessions.js';
+import { listAssumptionsForReview } from '../store/assumptions.js';
 import { getLastDeploymentNote } from '../store/deployments.js';
 import type { ItemStatus, ItemType } from '../types.js';
 import { safeHandler } from './common.js';
@@ -23,6 +24,7 @@ function resumeForProject(project: string) {
     lastSession,
     lastSessionTouchedItems: resolveItemRefs(lastSession?.items),
     lastDeployment: getLastDeploymentNote(project),
+    assumptionsToReview: listAssumptionsForReview(project, 5),
   };
 }
 
@@ -32,7 +34,7 @@ export function registerGetResumeTool(server: McpServer): void {
     {
       title: 'Get Resume',
       description:
-        'Get a recap of pending features/stories/tasks/bugs and the last session entry, for one project or all.',
+        'Get a recap of pending features/stories/tasks/bugs the last session entry, and up to 5 unreviewed assumptions (lowest confidence first), for one project or all.',
       inputSchema: {
         project: z.string().optional().describe('Project name; omit for a cross-project recap'),
       },
@@ -46,7 +48,7 @@ export function registerGetResumeTool(server: McpServer): void {
         const r = resumeForProject(slug);
         const hasPending =
           r.pendingFeatures.length || r.pendingStories.length || r.pendingTasks.length || r.pendingBugs.length;
-        if (hasPending || r.lastSession || r.lastDeployment) result[slug] = r;
+        if (hasPending || r.lastSession || r.lastDeployment || r.assumptionsToReview.length) result[slug] = r;
       }
       return JSON.stringify(result, null, 2);
     })
