@@ -26,6 +26,7 @@ function withRefs<T extends { items?: string[] }>(a: T) {
   return { ...a, touchedItems: resolveItemRefs(a.items) };
 }
 
+/** Picks the editable fields out of a request body; wrong-typed values become undefined (= unchanged). */
 function fieldsOf(b: Record<string, unknown>) {
   return {
     title: text(b.title),
@@ -89,6 +90,7 @@ assumptionsRouter.patch('/:id', (req, res) => {
   }
 });
 
+// Review is its own endpoint rather than a PATCH field so it stamps reviewedAt server-side.
 assumptionsRouter.post('/:id/review', (req, res) => {
   const { project, id } = req.params as { project: string; id: string };
   const { note, reopen } = req.body ?? {};

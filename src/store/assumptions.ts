@@ -6,12 +6,16 @@ import { assumptionsDir, slugify } from './paths.js';
 
 // Layout: assumptions/<YYYY-MM>/<id>.md, one file per assumption (YAML frontmatter + the context as the body),
 // plus assumptions/INDEX.md — one line per assumption, newest first. Same scheme as thoughts.
+// Each entry is `open` until reviewAssumption() marks it `reviewed`; files written before the status
+// field existed have none and are read as `open`.
 
 const INDEX_FILE = 'INDEX.md';
 const SUMMARY_LENGTH = 120;
+// Optional frontmatter fields, written only when set. Lists are replaced whole on update.
 const LIST_FIELDS = ['tags', 'items', 'wiki', 'refs', 'code'] as const;
 const TEXT_FIELDS = ['alternatives', 'impact', 'question'] as const;
 
+/** Everything a caller can set; only `title` is required on create. */
 export interface AssumptionInput {
   title: string;
   body?: string;
@@ -154,6 +158,7 @@ function applyInput(a: Assumption, input: Partial<AssumptionInput>): void {
   if (!a.title) throw new Error('An assumption needs a title.');
 }
 
+/** Records a new assumption, `open` and unreviewed. Throws if the title is empty. */
 export function addAssumption(project: string, input: AssumptionInput): Assumption {
   const created = new Date().toISOString();
   let id = idOf(created);
@@ -170,6 +175,7 @@ function resolveId(id: string): string {
   return /T.*:/.test(id) ? idOf(id) : id;
 }
 
+/** Throws "not found" (which the web routes map to a 404) if the id doesn't exist. */
 export function getAssumption(project: string, id: string): Assumption {
   const resolved = resolveId(id);
   if (!fs.existsSync(assumptionPath(project, resolved))) throw new Error(`Assumption "${id}" not found.`);
@@ -186,7 +192,11 @@ export function updateAssumption(project: string, id: string, changes: Partial<A
   return a;
 }
 
-/** Marks an assumption reviewed (optionally with the outcome), or puts it back to open with `reopen`. */
+/**
+ * Marks an assumption reviewed, stamping `reviewedAt` and keeping the optional outcome `note`, or puts it
+ * back to open with `reopen` (which also clears the note). Reviewing an already-reviewed entry refreshes
+ * the stamp and note.
+ */
 export function reviewAssumption(
   project: string,
   id: string,
@@ -218,7 +228,7 @@ export function deleteAssumption(project: string, id: string): Assumption {
   return existing;
 }
 
-/** Newest-first listing/search. Dates are prefix-compared on the creation time, so "2026-09" or "2026-09-28" both work. */
+/** Newest-first listing/search; `status` filters to open or reviewed. Dates are prefix-compared on the creation time, so "2026-09" or "2026-09-28" both work. */
 export function listAssumptions(
   project: string,
   { query, confidence, status, tag, item, wiki, since, until, limit = 20 }: AssumptionSearch

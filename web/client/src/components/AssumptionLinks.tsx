@@ -16,6 +16,7 @@ function refTarget(project: string, ref: string): { to: string; label: string } 
   return null;
 }
 
+/** Link chips for an assumption's wiki pages, spec/diagram/schema refs and code locations (code is plain text). */
 export function AssumptionLinks({ a }: { a: Assumption }) {
   return (
     <>

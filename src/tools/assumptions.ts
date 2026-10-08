@@ -18,6 +18,7 @@ const statusSchema = z.enum(ASSUMPTION_STATUSES);
 const project = z.string().min(1).describe('Project name');
 const id = z.string().min(1).describe('Assumption id, as returned by add_assumption/list_assumptions');
 
+// Fields shared by add_assumption and update_assumption (title is declared separately on each).
 const fields = {
   body: z.string().optional().describe('Context: what was ambiguous and what was decided'),
   confidence: confidenceSchema.optional().describe('How sure you are: low, medium (default) or high'),
@@ -34,6 +35,7 @@ const fields = {
   code: z.array(z.string()).optional().describe('Code locations, e.g. ["src/auth.ts:42"]'),
 };
 
+/** Plain-text rendering shared by get/list tools: a header line, labelled fields, then the body. */
 function format(a: Assumption): string {
   const lines = [
     `[${a.id}] ${a.status} · ${a.confidence} confidence — ${a.created}${a.updated ? ` (edited ${a.updated})` : ''}`,
