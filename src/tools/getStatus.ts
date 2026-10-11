@@ -18,6 +18,14 @@ function countsForProject(project: string): Record<ItemType, Record<string, numb
   return counts;
 }
 
+/** One line per type, zero counts left out, e.g. "story: in_progress 2, new 20, resolved 32". */
+function statusLines(counts: Record<ItemType, Record<string, number>>): string {
+  return ITEM_TYPES.map((type) => {
+    const parts = ITEM_STATUSES.filter((s) => counts[type][s]).map((s) => `${s} ${counts[type][s]}`);
+    return `${type}: ${parts.join(', ') || 'none'}`;
+  }).join('\n');
+}
+
 export function registerGetStatusTool(server: McpServer): void {
   server.registerTool(
     'get_status',
@@ -30,13 +38,11 @@ export function registerGetStatusTool(server: McpServer): void {
     },
     safeHandler(({ project }) => {
       if (project) {
-        return JSON.stringify(countsForProject(project), null, 2);
+        return statusLines(countsForProject(project));
       }
-      const result: Record<string, unknown> = {};
-      for (const slug of listProjectSlugs()) {
-        result[slug] = countsForProject(slug);
-      }
-      return JSON.stringify(result, null, 2);
+      return listProjectSlugs()
+        .map((slug) => `# ${slug}\n${statusLines(countsForProject(slug))}`)
+        .join('\n\n');
     })
   );
 }

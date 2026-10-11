@@ -24,6 +24,6 @@ export function registerGetSpecJourneyTool(server: McpServer): void {
       const screens = listSpecScreensRecursive(project, platform as SpecPlatform, folder);
       if (screens.length === 0) return 'No spec screens found.';
       return buildSpecJourneyDiagram(screens);
-    })
+    }, { cap: false })
   );
 }
