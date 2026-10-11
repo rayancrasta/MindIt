@@ -53,6 +53,6 @@ export function registerReadSpecScreenTool(server: McpServer): void {
         screen.description || '_No description._',
       ];
       return lines.join('\n');
-    })
+    }, { cap: false })
   );
 }

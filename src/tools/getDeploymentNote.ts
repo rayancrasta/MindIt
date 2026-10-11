@@ -17,7 +17,7 @@ export function registerGetDeploymentNoteTool(server: McpServer): void {
     safeHandler(({ project, id }) => {
       const note = findDeploymentNote(project, id);
       if (!note) return `No deployment note found with number ${id}.`;
-      return JSON.stringify(note, null, 2);
-    })
+      return JSON.stringify(note);
+    }, { cap: false })
   );
 }

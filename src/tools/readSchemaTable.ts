@@ -23,6 +23,6 @@ export function registerReadSchemaTableTool(server: McpServer): void {
         `${formatColumns(table.columns)}\n\n` +
         (table.description || '_No description._')
       );
-    })
+    }, { cap: false })
   );
 }

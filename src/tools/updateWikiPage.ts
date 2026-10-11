@@ -11,7 +11,9 @@ export function registerUpdateWikiPageTool(server: McpServer): void {
       title: 'Update Wiki Page',
       description:
         'Overwrite the full body of an existing wiki page. Fails if the page doesn\'t exist — use create_wiki_page for that, ' +
-        'or append_wiki_page to add to it instead of replacing it.',
+        'or append_wiki_page to add to it instead of replacing it. Build the new body from a complete read: ' +
+        'read_wiki_page stops at max_chars (default 12,000), so if its result ends with a "[Truncated" notice, ' +
+        'read again with a larger max_chars first, or the rest of the page is lost.',
       inputSchema: {
         project: z.string().min(1).describe('Project name'),
         path: z.string().min(1).describe('Path of the page to update, e.g. "Architecture/Database Design"'),

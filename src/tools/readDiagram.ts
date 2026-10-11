@@ -21,6 +21,6 @@ export function registerReadDiagramTool(server: McpServer): void {
         `# ${diagram.title}\n(${diagram.kind}, ${diagramMarkdownLink(project, diagram.path, diagram.kind, 'open in app')}, updated ${diagram.updated})\n\n` +
         (diagram.content || '_This diagram is empty._')
       );
-    })
+    }, { cap: false })
   );
 }

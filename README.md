@@ -235,7 +235,7 @@ body. Folders are plain directories that exist only while they contain something
 | `create_wiki_page` | Create a page at a path (creates parent folders); fails if it already exists |
 | `update_wiki_page` | Overwrite a page's full body |
 | `append_wiki_page` | Append markdown to a page, creating it if it doesn't exist yet — the everyday "write this down" tool |
-| `read_wiki_page` | Read a page's title + body |
+| `read_wiki_page` | Read a page's title + body, up to `max_chars` (default 12,000). Read part of it with `section` (one heading and everything under it), `grep` (matching lines only, numbered, under their headings; `line_chars` clips each), or `offset`/`limit` (by line number) |
 | `delete_wiki_page` | Delete a page |
 | `list_wiki` | List a folder's contents (one level, or `recursive: true` for the full tree) |
 
@@ -260,14 +260,15 @@ counter), stored at `data/<project-slug>/deployments/<zero-padded-id>.md`.
 | `update_deployment_note` | Correct any field after the fact (e.g. mark a deploy `rolled_back` later) |
 | `delete_deployment_note` | Delete a deployment note |
 
-`get_resume` includes the most recent deployment note per project (`lastDeployment`)
-alongside the last session entry, so `/resume` surfaces what was last shipped.
+`get_resume` includes the most recent deployment note per project (a `Last deployment:` line, or
+`lastDeployment` with `detail: true`) alongside the last session entry, so `/resume` surfaces what was
+last shipped.
 
 ## Handoffs
 
 `log_session` can tag a session entry with the ids of the
 features/stories/tasks/bugs it touched (`items: ["12", "15"]`); `get_resume` resolves
-those ids live via `lastSessionTouchedItems`, so a recap shows each item's *current*
+those ids live (its `Touched:` line, or `lastSessionTouchedItems` with `detail: true`), so a recap shows each item's *current*
 title/status rather than stale prose written at log time. Item-ref resolution lives in a
 single shared store helper used by both `get_resume` and the web resume/log routes, so the
 MCP and web views can never drift.
@@ -278,7 +279,9 @@ frontmatter for `timestamp`/`items`/`blockers`/`next`, with `done` as the free-t
 summary. Logging only adds a file and one index line, so history is never rewritten and stays
 cheap at any length. `search_handoffs` filters the history by `query` (text in done/blockers/next),
 `item` (an item id), and `since`/`until` (`2026-09` or `2026-09-28`); the web log route accepts the
-same filters as `?q=&item=&since=&until=`.
+same filters as `?q=&item=&since=&until=`. Results are brief by default: timestamp, path, items, a
+`summary` (the body's first paragraph) and `blockers`/`next`, each clipped. `fields` picks which of
+`items`, `summary`, `blockers`, `next` come back, and `detail: true` returns the full bodies.
 
 **Migrating the old `LOG.md`.** Earlier versions kept one `LOG.md` per project. `migrate_handoffs`
 converts it (all projects, or one via `project`; `dry_run: true` previews), keeping the original
@@ -349,7 +352,7 @@ Links, all optional: `items` (feature/story/task/bug numbers), `wiki` (wiki path
 | `update_assumption` | Partial edit by `id` — only the fields passed change; empty values clear them |
 | `delete_assumption` | Permanently delete by `id` |
 
-`get_resume` includes `assumptionsToReview` (up to 5 unreviewed entries, lowest confidence first), and
+`get_resume` includes the assumptions to review (up to 5 unreviewed entries, lowest confidence first), and
 the repo ships a `log-assumption` skill (`.claude/skills/log-assumption`) telling agents to call
 `add_assumption` the moment they guess. The web UI's `/assumptions` page shows a confidence-coloured
 timeline with status/confidence filter chips, search, link chips, Mark reviewed / Reopen and full CRUD, and work-item pages list the
@@ -499,7 +502,8 @@ web/mobile screen path via `link_spec`/`unlink_spec`.
 Plus: `link_stories`, `unlink_stories`, `get_status` (counts by type/status), `log_session`
 (optionally tagged with touched item ids — see [Handoffs](#handoffs)), `search_handoffs`,
 `migrate_handoffs`, the developer-thought tools (see [Developer thoughts](#developer-thoughts)), the assumption tools (see [Assumptions](#assumptions)), `get_resume`
-(pending items + last session + last deployment, per-project or cross-project), `get_item`
+(pending items + last session + last deployment, per-project or cross-project — see
+[Tool output size](#tool-output-size)), `get_item`
 (look up any item by number alone, regardless of type or project),
 `add_comment`/`update_comment`/`delete_comment` (ADO-style comment threads on any item), and
 the wiki, deployment note, diagram, schema, and spec tools — see above.
@@ -514,10 +518,43 @@ The id counter is a plain read-increment-write on `data/.counter`, not lock-prot
 fine for single-user use, but two truly simultaneous creates could in theory race. Not a
 concern this tool is designed to guard against.
 
+## Tool output size
+
+Every tool keeps its default output small, and full detail is something you ask for, so a recap
+doesn't cost an agent tens of thousands of tokens:
+
+- **`get_resume`** returns plain text lines: one line per pending item
+  (`- [in_progress] story 124: Organisations and accounts (feature 115)`), with features that aren't
+  in progress and items in testing collapsed to id lists; then the latest handover as its summary
+  (first paragraph), blockers, next and touched items; the last deployment; and up to 5 unreviewed
+  assumptions. `status: ["in_progress", ...]` lists only those statuses, one line each.
+  `detail: true` returns the full recap as JSON (every item with notes, comments and timestamps).
+- **`search_handoffs`** is brief by default; `fields` and `detail: true` as described under
+  [Handoffs](#handoffs).
+- **`read_wiki_page`** stops at `max_chars` (default 12,000) with a notice saying which `offset` to
+  continue from; `section`, `grep` and `offset`/`limit` read part of a page.
+- **`list_thoughts`** clips each body to 500 characters; `detail: true` or `get_thought` gives the
+  full text.
+- **`get_status`** returns one text line per type, zero counts left out.
+- **Every other tool** is capped at 15,000 characters with a truncation notice, unless you pass
+  `detail: true` where the tool offers it. Tools that read one thing you named (`get_item`,
+  `get_thought`, `get_assumption`, `get_deployment_note`, `read_diagram`, `read_schema_table`,
+  `read_spec_screen`, `get_schema_erd`, `get_spec_journey`) aren't capped, since asking for it is the
+  opt-in. Their JSON (`get_item`, `get_deployment_note`) is no longer pretty-printed.
+
+## Changelog
+
+- **2026-10-12 — compact tool output (behaviour change).** `get_resume`, `search_handoffs`,
+  `read_wiki_page`, `list_thoughts` and `get_status` now return compact output by default, and
+  callers that pass no new options get it. `get_resume` and `get_status` return text instead of
+  pretty-printed JSON; pass `detail: true` to `get_resume` for the old fields as compact JSON, and to
+  `search_handoffs` / `list_thoughts` for full bodies. For the `tokenomics` project a typical recap
+  sequence went from about 150,000 characters to about 13,000. See [Tool output size](#tool-output-size).
+
 ## Skills
 
 - `/add-to-work` — infers project + item type from what you say, calls the matching `add_*` tool.
-- `/resume` — calls `get_resume` and narrates pending work + last session.
+- `/resume` — calls `get_resume` (compact by default) and narrates pending work + last session.
 
 ## Confidentiality
 

@@ -3,20 +3,20 @@ import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { THOUGHT_KINDS } from '../types.js';
 import type { DeveloperThought } from '../types.js';
 import { addThought, deleteThought, getThought, listThoughts, updateThought } from '../store/thoughts.js';
-import { safeHandler } from './common.js';
+import { clip, safeHandler } from './common.js';
 
 const kindSchema = z.enum(THOUGHT_KINDS);
 const project = z.string().min(1).describe('Project name');
 const id = z.string().min(1).describe('Thought id, as returned by add_thought/list_thoughts');
 
-function format(t: DeveloperThought): string {
+function format(t: DeveloperThought, bodyChars?: number): string {
   const meta = [
     `[${t.id}] ${t.kind} — ${t.created}${t.updated ? ` (edited ${t.updated})` : ''}`,
     t.title ? `title: ${t.title}` : '',
     t.tags?.length ? `tags: ${t.tags.join(', ')}` : '',
     t.items?.length ? `items: ${t.items.join(', ')}` : '',
   ];
-  return `${meta.filter(Boolean).join('\n')}\n\n${t.body}`;
+  return `${meta.filter(Boolean).join('\n')}\n\n${bodyChars ? clip(t.body, bodyChars) : t.body}`;
 }
 
 export function registerThoughtTools(server: McpServer): void {
@@ -50,7 +50,7 @@ export function registerThoughtTools(server: McpServer): void {
       description: 'Read one developer thought by id.',
       inputSchema: { project, id },
     },
-    safeHandler(({ project, id }) => format(getThought(project, id)))
+    safeHandler(({ project, id }) => format(getThought(project, id)), { cap: false })
   );
 
   server.registerTool(
@@ -59,7 +59,8 @@ export function registerThoughtTools(server: McpServer): void {
       title: 'List Developer Thoughts',
       description:
         'List or search a project\'s developer thoughts, newest first. All filters are optional and combine with AND; ' +
-        'with none it returns the most recent thoughts. Use it to recover how the developer was thinking about something.',
+        'with none it returns the most recent thoughts. Use it to recover how the developer was thinking about something. ' +
+        'Bodies are clipped to 500 characters; use get_thought or detail: true for the full text.',
       inputSchema: {
         project,
         query: z.string().optional().describe('Case-insensitive text to find in the title or body'),
@@ -69,11 +70,13 @@ export function registerThoughtTools(server: McpServer): void {
         since: z.string().optional().describe('Earliest date, inclusive: "2026-09" or "2026-09-28"'),
         until: z.string().optional().describe('Latest date, inclusive: "2026-09" or "2026-09-28"'),
         limit: z.number().int().positive().optional().describe('Max thoughts to return (default 20)'),
+        detail: z.boolean().optional().describe('Return each thought\'s full body instead of the first 500 characters'),
       },
     },
-    safeHandler(({ project, ...filters }) => {
+    safeHandler(({ project, detail, ...filters }) => {
       const thoughts = listThoughts(project, filters);
-      return thoughts.length === 0 ? 'No matching thoughts.' : thoughts.map(format).join('\n\n---\n\n');
+      if (thoughts.length === 0) return 'No matching thoughts.';
+      return thoughts.map((t) => format(t, detail ? undefined : 500)).join('\n\n---\n\n');
     })
   );
 

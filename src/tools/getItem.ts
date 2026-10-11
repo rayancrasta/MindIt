@@ -17,7 +17,7 @@ export function registerGetItemTool(server: McpServer): void {
     safeHandler(({ id }) => {
       const found = findItemGlobal(id);
       if (!found) return `No item found with number ${id}.`;
-      return JSON.stringify(found.item, null, 2);
-    })
+      return JSON.stringify(found.item);
+    }, { cap: false })
   );
 }

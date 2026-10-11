@@ -82,7 +82,7 @@ export function registerAssumptionTools(server: McpServer): void {
       description: 'Read one assumption by id.',
       inputSchema: { project, id },
     },
-    safeHandler(({ project, id }) => format(getAssumption(project, id)))
+    safeHandler(({ project, id }) => format(getAssumption(project, id)), { cap: false })
   );
 
   server.registerTool(

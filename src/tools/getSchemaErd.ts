@@ -20,6 +20,6 @@ export function registerGetSchemaErdTool(server: McpServer): void {
       const tables = listSchemaTablesRecursive(project, folder);
       if (tables.length === 0) return 'No schema tables found.';
       return buildErDiagram(tables);
-    })
+    }, { cap: false })
   );
 }
