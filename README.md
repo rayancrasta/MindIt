@@ -536,7 +536,7 @@ doesn't cost an agent tens of thousands of tokens:
 - **`list_thoughts`** clips each body to 500 characters; `detail: true` or `get_thought` gives the
   full text.
 - **`get_status`** returns one text line per type, zero counts left out.
-- **Every other tool** is capped at 15,000 characters with a truncation notice, unless you pass
+- **Every other tool** is capped at 8,000 characters with a truncation notice, unless you pass
   `detail: true` where the tool offers it. Tools that read one thing you named (`get_item`,
   `get_thought`, `get_assumption`, `get_deployment_note`, `read_diagram`, `read_schema_table`,
   `read_spec_screen`, `get_schema_erd`, `get_spec_journey`) aren't capped, since asking for it is the
