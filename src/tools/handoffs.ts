@@ -48,7 +48,7 @@ export function registerHandoffTools(server: McpServer): void {
         item: z.string().optional().describe('Only entries that touched this item id, e.g. "14"'),
         since: z.string().optional().describe('Earliest date, inclusive: "2026-09" or "2026-09-28"'),
         until: z.string().optional().describe('Latest date, inclusive: "2026-09" or "2026-09-28"'),
-        limit: z.number().int().positive().optional().describe('Max entries to return (default 20)'),
+        limit: z.number().int().positive().optional().describe('Max entries to return (default 5)'),
         fields: z
           .array(z.enum(BRIEF_FIELDS))
           .optional()
@@ -57,7 +57,7 @@ export function registerHandoffTools(server: McpServer): void {
       },
     },
     safeHandler(({ project, fields, detail, ...filters }) => {
-      const results = searchSessionEntries(project, filters);
+      const results = searchSessionEntries(project, { ...filters, limit: filters.limit ?? 5 });
       if (results.length === 0) return 'No matching handoffs.';
       return results.map((e) => (detail ? fullEntry(e) : briefEntry(e, fields ?? BRIEF_FIELDS))).join('\n\n');
     })

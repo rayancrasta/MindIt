@@ -17,7 +17,7 @@ export function formatItemList(
 }
 
 /** Default ceiling on any one tool result, so nothing blows past a client's tool-result limit by accident. */
-export const RESULT_CAP = 15_000;
+export const RESULT_CAP = 8_000;
 
 /** Collapses whitespace and clips to `max` characters with an ellipsis. */
 export function clip(text: string, max: number): string {
